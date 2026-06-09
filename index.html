@@ -1,0 +1,4306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>数学大冒险 - 儿童数学思维游戏</title>
+    <style>
+        /* ========== 基础重置与变量 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #00B894;
+            --accent: #FDCB6E;
+            --danger: #E17055;
+            --forest: #00B894;
+            --mountain: #E17055;
+            --castle: #A29BFE;
+            --maze: #0984E3;
+            --bg-dark: #2D3436;
+            --bg-light: #DFE6E9;
+            --text-dark: #2D3436;
+            --text-light: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========== 通用工具类 ========== */
+        .hidden { display: none !important; }
+
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .screen.fade-out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        /* ========== 欢迎页 ========== */
+        #welcome {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .stars-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .star-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .welcome-content {
+            text-align: center;
+            z-index: 10;
+        }
+
+        .fox-mascot {
+            font-size: 80px;
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .welcome-title {
+            font-size: 48px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 20px rgba(108, 92, 231, 0.8);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 40px;
+        }
+
+        .name-input-wrapper {
+            margin-bottom: 30px;
+        }
+
+        .name-input {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+            width: 250px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .name-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .name-input:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #f9a825 100%);
+            border: none;
+            border-radius: 30px;
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--primary) 0%, #5f4dd0 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+
+        /* ========== 世界地图 ========== */
+        #worldmap {
+            background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 100%);
+        }
+
+        .map-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 3px solid white;
+        }
+
+        .player-stats {
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .total-stars {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .profile-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .profile-btn:active {
+            transform: scale(0.9);
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 区域岛屿 */
+        .region-island {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .region-island:active {
+            transform: scale(0.95);
+        }
+
+        .region-island.locked {
+            filter: grayscale(0.7) brightness(0.7);
+            cursor: not-allowed;
+        }
+
+        .region-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            position: relative;
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        }
+
+        .region-name {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .region-stars {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--accent);
+            color: var(--text-dark);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            border: 3px solid white;
+        }
+
+        .lock-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            z-index: 5;
+        }
+
+        .region-forest .region-icon { background: linear-gradient(135deg, #00B894 0%, #00a085 100%); }
+        .region-mountain .region-icon { background: linear-gradient(135deg, #E17055 0%, #d63031 100%); }
+        .region-castle .region-icon { background: linear-gradient(135deg, #A29BFE 0%, #6c5ce7 100%); }
+        .region-maze .region-icon { background: linear-gradient(135deg, #0984E3 0%, #0652DD 100%); }
+
+        /* 宠物狐狸 */
+        .pet-fox {
+            position: absolute;
+            font-size: 40px;
+            transition: all 0.5s ease;
+            z-index: 100;
+            pointer-events: none;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .pet-fox.jump {
+            animation: petJump 0.5s ease;
+        }
+
+        @keyframes petJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        /* ========== 区域关卡页 ========== */
+        #region {
+            background: linear-gradient(180deg, #a29bfe 0%, #6c5ce7 100%);
+        }
+
+        .region-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:active {
+            transform: scale(0.9);
+        }
+
+        .region-title {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .region-progress {
+            color: white;
+            font-size: 14px;
+        }
+
+        .scenes-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 20px 40px;
+            position: relative;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scene-node {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin: 6px 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .scene-node:active {
+            transform: scale(0.9);
+        }
+
+        .scene-node.current {
+            animation: pulse 2s infinite;
+            border: 4px solid var(--accent);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(253, 203, 110, 0.7); }
+            50% { box-shadow: 0 0 0 15px rgba(253, 203, 110, 0); }
+        }
+
+        .scene-node.completed {
+            background: linear-gradient(135deg, #00B894 0%, #00a085 100%);
+        }
+
+        .scene-node.locked {
+            background: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+        }
+
+        .scene-node.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 30px;
+        }
+
+        .scene-star {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 2px solid white;
+        }
+
+        .scene-connector {
+            width: 4px;
+            height: 20px;
+            background: rgba(255,255,255,0.5);
+            flex-shrink: 0;
+        }
+
+        .scene-name {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* ========== 游戏场景页 ========== */
+        #game {
+            background: linear-gradient(180deg, #DFE6E9 0%, #B2BEC3 100%);
+        }
+
+        .game-header {
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            position: relative;
+        }
+
+        .game-scene-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .game-stars {
+            display: flex;
+            gap: 5px;
+        }
+
+        .game-star {
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .game-star.earned {
+            animation: starPop 0.5s ease;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        .game-scene {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .interaction-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-box {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 90%;
+            z-index: 20;
+            position: relative;
+        }
+
+        .task-text {
+            font-size: 18px;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .task-highlight {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        /* 收集类场景 */
+        .tree-container {
+            position: relative;
+            width: 90vw;
+            max-width: 400px;
+            height: 60vh;
+            max-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .tree {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: min(35vw, 180px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .apple {
+            position: absolute;
+            font-size: min(8vw, 42px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: appleGrow 0.5s ease;
+            z-index: 5;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        @keyframes appleGrow {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .apple:active {
+            transform: scale(0.8);
+        }
+
+        .apple.collected {
+            animation: appleCollect 0.5s ease forwards;
+        }
+
+        @keyframes appleCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0) translateY(100px); opacity: 0; }
+        }
+
+        .basket {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: min(18vw, 80px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .basket.shake {
+            animation: basketShake 0.5s ease;
+        }
+
+        @keyframes basketShake {
+            0%, 100% { transform: translateX(-50%) rotate(0); }
+            25% { transform: translateX(-50%) rotate(-10deg); }
+            75% { transform: translateX(-50%) rotate(10deg); }
+        }
+
+        .basket.full {
+            animation: basketJump 0.5s ease;
+        }
+
+        @keyframes basketJump {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+        }
+
+        /* 排列类场景 */
+        .sequence-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .sequence-slots {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            min-height: 100px;
+        }
+
+        .sequence-slot {
+            width: 60px;
+            height: 60px;
+            border: 3px dashed rgba(0,0,0,0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-slot.filled {
+            border: 3px solid var(--secondary);
+            background: rgba(0, 184, 148, 0.2);
+        }
+
+        .sequence-slot.hint {
+            opacity: 0.85;
+            border-style: solid;
+            cursor: default;
+        }
+
+        .sequence-slot.correct {
+            border-color: var(--accent);
+            background: rgba(253, 203, 110, 0.3);
+        }
+
+        .sequence-items {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 20px;
+        }
+
+        .sequence-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .sequence-item:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .sequence-item.dragging {
+            opacity: 0.5;
+        }
+
+        .sequence-item.placed {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 交易类场景 */
+        .shop-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .shop-counter {
+            background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+            padding: 30px;
+            border-radius: 20px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .shop-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .shop-item:active {
+            transform: scale(0.9);
+        }
+
+        .shop-item-icon {
+            font-size: 50px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .shop-item-price {
+            background: var(--accent);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .shop-item.selected {
+            transform: scale(1.1);
+        }
+
+        .shop-item.selected .shop-item-icon {
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .wallet-display {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            padding: 15px 30px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-dark);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .cart-display {
+            display: flex;
+            gap: 10px;
+            min-height: 60px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
+        }
+
+        .cart-item {
+            font-size: 35px;
+            animation: cartAdd 0.5s ease;
+        }
+
+        @keyframes cartAdd {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        /* 分配类场景 */
+        .divide-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .cake-display {
+            font-size: 120px;
+            position: relative;
+        }
+
+        .cake-pieces {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 5px;
+        }
+
+        .recipients {
+            display: flex;
+            gap: 30px;
+        }
+
+        .recipient {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recipient-avatar {
+            font-size: 50px;
+            padding: 15px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .recipient-plate {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed rgba(0,0,0,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .recipient-plate.filled {
+            border-color: var(--secondary);
+            background: rgba(0, 184, 148, 0.2);
+        }
+
+        /* 战斗类场景 */
+        .battle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .battle-arena {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            height: 250px;
+        }
+
+        .monster {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 100px;
+            animation: monsterIdle 2s ease-in-out infinite;
+        }
+
+        @keyframes monsterIdle {
+            0%, 100% { transform: translateY(-50%) scaleX(-1); }
+            50% { transform: translateY(-55%) scaleX(-1); }
+        }
+
+        .hero {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            font-size: 70px;
+        }
+
+        .battle-question {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            max-width: 90%;
+        }
+
+        .battle-question-text {
+            font-size: 18px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .battle-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .battle-option {
+            background: linear-gradient(135deg, var(--primary) 0%, #5f4dd0 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .battle-option:active {
+            transform: scale(0.9);
+        }
+
+        .battle-option.correct {
+            background: linear-gradient(135deg, var(--secondary) 0%, #00a085 100%);
+            animation: optionPop 0.5s ease;
+        }
+
+        .battle-option.wrong {
+            background: linear-gradient(135deg, var(--danger) 0%, #d63031 100%);
+            animation: optionShake 0.5s ease;
+        }
+
+        @keyframes optionPop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes optionShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .battle-progress {
+            display: flex;
+            gap: 10px;
+        }
+
+        .battle-pip {
+            width: 30px;
+            height: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .battle-pip.filled {
+            background: var(--secondary);
+        }
+
+        /* 提示区 */
+        .hint-area {
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            text-align: center;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .hint-text {
+            color: var(--text-dark);
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .encourage-text {
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: bold;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== 奖励页 ========== */
+        #reward {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reward-content {
+            text-align: center;
+        }
+
+        .reward-stars {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .reward-star {
+            font-size: 80px;
+            opacity: 0;
+            transform: scale(0) rotate(-180deg);
+        }
+
+        .reward-star.show {
+            animation: rewardStarPop 0.8s ease forwards;
+        }
+
+        .reward-star:nth-child(1).show { animation-delay: 0.2s; }
+        .reward-star:nth-child(2).show { animation-delay: 0.5s; }
+        .reward-star:nth-child(3).show { animation-delay: 0.8s; }
+
+        @keyframes rewardStarPop {
+            0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+            50% { opacity: 1; transform: scale(1.3) rotate(10deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        .reward-message {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .reward-pet {
+            font-size: 60px;
+            margin-bottom: 30px;
+            animation: petCelebrate 1s ease infinite;
+        }
+
+        @keyframes petCelebrate {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .reward-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        /* ========== 成长页 ========== */
+        #profile {
+            background: linear-gradient(180deg, #ffeaa7 0%, #fdcb6e 100%);
+        }
+
+        .profile-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .profile-title {
+            color: var(--text-dark);
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .profile-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .skill-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(108, 92, 231, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .skill-item.unlocked {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2) 0%, rgba(162, 155, 254, 0.2) 100%);
+        }
+
+        .skill-icon {
+            font-size: 30px;
+        }
+
+        .skill-name {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .skill-item.locked .skill-icon,
+        .skill-item.locked .skill-name {
+            opacity: 0.4;
+        }
+
+        .pet-collection {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .pet-slot {
+            width: 70px;
+            height: 70px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid rgba(0,0,0,0.1);
+        }
+
+        .pet-slot.unlocked {
+            background: linear-gradient(135deg, rgba(253, 203, 110, 0.3) 0%, rgba(249, 168, 37, 0.3) 100%);
+            border-color: var(--accent);
+        }
+
+        .badges-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge-item {
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .badge-item.unlocked {
+            background: linear-gradient(135deg, var(--accent) 0%, #f9a825 100%);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        }
+
+        /* ========== 彩纸动画 ========== */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ========== 浮动星星效果 ========== */
+        .floating-star {
+            position: absolute;
+            font-size: 30px;
+            pointer-events: none;
+            animation: floatingStar 1s ease-out forwards;
+            z-index: 200;
+        }
+
+        @keyframes floatingStar {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.5) translateY(-100px);
+            }
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 480px) {
+            .welcome-title {
+                font-size: 36px;
+            }
+
+            .region-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+
+            .scene-node {
+                width: 75px;
+                height: 75px;
+                font-size: 35px;
+            }
+
+            .task-text {
+                font-size: 16px;
+            }
+
+            .task-highlight {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== 欢迎页 ========== -->
+    <div id="welcome" class="screen">
+        <div class="stars-bg" id="starsBg"></div>
+        <div class="welcome-content">
+            <div class="fox-mascot">🦊</div>
+            <h1 class="welcome-title">数学大冒险</h1>
+            <p class="welcome-subtitle">和好朋友一起探索神奇的数学世界吧！</p>
+            <div class="name-input-wrapper">
+                <input type="text" class="name-input" id="playerName" placeholder="给自己取个名字吧~" maxlength="10">
+            </div>
+            <button class="btn" id="startBtn">开始冒险</button>
+        </div>
+    </div>
+
+    <!-- ========== 世界地图 ========== -->
+    <div id="worldmap" class="screen hidden">
+        <div class="map-header">
+            <div class="player-info">
+                <div class="player-avatar">🦊</div>
+                <div class="player-stats">
+                    <div class="player-name" id="mapPlayerName">小冒险家</div>
+                    <div class="total-stars">
+                        <span>⭐</span>
+                        <span id="totalStars">0</span>
+                        <span>颗星星</span>
+                    </div>
+                </div>
+            </div>
+            <button class="profile-btn" id="profileBtn">🎒</button>
+        </div>
+        <div class="map-container">
+            <div class="map-canvas" id="mapCanvas">
+                <!-- 区域将通过JS生成 -->
+            </div>
+            <div class="pet-fox" id="petFox">🦊</div>
+        </div>
+    </div>
+
+    <!-- ========== 区域关卡页 ========== -->
+    <div id="region" class="screen hidden">
+        <div class="region-header">
+            <button class="back-btn" id="backToMap" style="width:auto;border-radius:20px;padding:6px 14px;font-size:16px;display:flex;align-items:center;gap:4px;">🏠 返回</button>
+            <div class="region-title" id="regionTitle">数数森林</div>
+            <div class="region-progress" id="regionProgress">0/6 完成</div>
+        </div>
+        <div class="scenes-container" id="scenesContainer">
+            <!-- 场景节点将通过JS生成 -->
+        </div>
+    </div>
+
+    <!-- ========== 游戏场景页 ========== -->
+    <div id="game" class="screen hidden">
+        <div class="game-header">
+            <button class="back-btn" id="backToRegion" style="width:auto;border-radius:20px;padding:6px 14px;font-size:16px;display:flex;align-items:center;gap:4px;">🏠 返回</button>
+            <div class="game-scene-title" id="gameSceneTitle">果园摘苹果</div>
+            <div class="game-stars" id="gameStars">
+                <span class="game-star">☆</span>
+                <span class="game-star">☆</span>
+                <span class="game-star">☆</span>
+            </div>
+        </div>
+        <div class="game-scene" id="gameScene">
+            <!-- 游戏内容将通过JS生成 -->
+        </div>
+        <div class="hint-area" id="hintArea">
+            <p class="hint-text">点击苹果，摘下来放进篮子里~</p>
+        </div>
+    </div>
+
+    <!-- ========== 奖励页 ========== -->
+    <div id="reward" class="screen hidden">
+        <div class="reward-content">
+            <div class="reward-stars" id="rewardStars">
+                <span class="reward-star">⭐</span>
+                <span class="reward-star">⭐</span>
+                <span class="reward-star">⭐</span>
+            </div>
+            <div class="reward-message" id="rewardMessage">太棒了！</div>
+            <div class="reward-pet">🦊✨</div>
+            <div class="reward-buttons">
+                <button class="btn btn-secondary" id="backToRegionBtn">继续冒险</button>
+                <button class="btn" id="backToMapBtn">返回地图</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 成长页 ========== -->
+    <div id="profile" class="screen hidden">
+        <div class="profile-header">
+            <button class="back-btn" id="backFromProfile">←</button>
+            <div class="profile-title">🎒 我的背包</div>
+            <div style="width: 45px;"></div>
+        </div>
+        <div class="profile-content" id="profileContent">
+            <!-- 成长内容将通过JS生成 -->
+        </div>
+    </div>
+
+    <script>
+        // ========== 游戏数据 ==========
+        const GAME_DATA = {
+            regions: [
+                {
+                    id: 'forest',
+                    name: '数数森林',
+                    icon: '🌲',
+                    theme: 'forest',
+                    starsRequired: 0,
+                    scenes: [
+                        { id: 'forest_1', name: '果园摘苹果', type: 'collect', icon: '🍎' },
+                        { id: 'forest_2', name: '蘑菇排队', type: 'sequence', icon: '🍄' },
+                        { id: 'forest_3', name: '树洞寻宝', type: 'count', icon: '🌳' },
+                        { id: 'forest_4', name: '森林守卫', type: 'battle', icon: '👹' },
+                        { id: 'forest_5', name: '松鼠比果', type: 'compare', icon: '🐿️' },
+                        { id: 'forest_6', name: '找不同', type: 'odd', icon: '🔍' }
+                    ]
+                },
+                {
+                    id: 'mountain',
+                    name: '加减山谷',
+                    icon: '⛰️',
+                    theme: 'mountain',
+                    starsRequired: 3,
+                    scenes: [
+                        { id: 'mountain_1', name: '魔法商店', type: 'shop', icon: '🏪' },
+                        { id: 'mountain_2', name: '建桥过河', type: 'subtract', icon: '🌉' },
+                        { id: 'mountain_3', name: '分蛋糕派对', type: 'divide', icon: '🎂' },
+                        { id: 'mountain_4', name: '山谷巨人', type: 'battle', icon: '🗿' },
+                        { id: 'mountain_5', name: '宝石商人', type: 'trade', icon: '💎' },
+                        { id: 'mountain_6', name: '补给车队', type: 'chain', icon: '🚛' }
+                    ]
+                },
+                {
+                    id: 'castle',
+                    name: '图形王国',
+                    icon: '🏰',
+                    theme: 'castle',
+                    starsRequired: 10,
+                    scenes: [
+                        { id: 'castle_1', name: '城堡大门', type: 'shape', icon: '🔑' },
+                        { id: 'castle_2', name: '拼图花园', type: 'puzzle', icon: '🧩' },
+                        { id: 'castle_3', name: '对称之镜', type: 'symmetry', icon: '🪞' },
+                        { id: 'castle_4', name: '图形守卫', type: 'battle', icon: '🐉' },
+                        { id: 'castle_5', name: '影子之谜', type: 'shadow', icon: '🌘' },
+                        { id: 'castle_6', name: '折纸工坊', type: 'fold', icon: '📄' }
+                    ]
+                },
+                {
+                    id: 'maze',
+                    name: '逻辑迷宫',
+                    icon: '🔮',
+                    theme: 'maze',
+                    starsRequired: 18,
+                    scenes: [
+                        { id: 'maze_1', name: '彩色石板', type: 'pattern', icon: '🟦' },
+                        { id: 'maze_2', name: '天平谜题', type: 'balance', icon: '⚖️' },
+                        { id: 'maze_3', name: '排列大师', type: 'arrange', icon: '🎯' },
+                        { id: 'maze_4', name: '找不同', type: 'mazeodd', icon: '🔍' },
+                        { id: 'maze_5', name: '密码门', type: 'cipher', icon: '🚪' },
+                        { id: 'maze_6', name: '迷宫之主', type: 'battle', icon: '👑' }
+                    ]
+                }
+            ],
+            skills: [
+                { id: 'calc', name: '计算之力', icon: '🔢', desc: '加减乘除小能手' },
+                { id: 'shape', name: '图形感知', icon: '📐', desc: '认识各种形状' },
+                { id: 'logic', name: '逻辑思维', icon: '🧮', desc: '找规律小侦探' },
+                { id: 'data', name: '数据理解', icon: '📊', desc: '数数小专家' },
+                { id: 'time', name: '时间空间', icon: '⏰', desc: '认识时间和方向' }
+            ],
+            badges: [
+                { id: 'first', name: '初次冒险', icon: '🎖️' },
+                { id: 'forest_master', name: '森林勇者', icon: '🌲' },
+                { id: 'mountain_master', name: '山谷勇士', icon: '⛰️' },
+                { id: 'castle_master', name: '城堡骑士', icon: '🏰' },
+                { id: 'maze_master', name: '迷宫大师', icon: '🔮' },
+                { id: 'math_wizard', name: '数学巫师', icon: '🧙' }
+            ]
+        };
+
+        // ========== 游戏状态 ==========
+        let gameState = {
+            playerName: '小冒险家',
+            totalStars: 0,
+            regionStars: {},
+            completedScenes: [],
+            currentRegion: null,
+            currentScene: null,
+            adaptive: {
+                level: 1,
+                consecutive: 0,
+                wrongCount: 0,
+                totalCorrect: 0,
+                totalAttempt: 0
+            },
+            currentBattleWins: 0,
+            currentBattleTotal: 3,
+            sceneAttempts: {}
+        };
+
+        // ========== 音效系统 ==========
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            switch(type) {
+                case 'click':
+                    osc.frequency.value = 600;
+                    gain.gain.value = 0.1;
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                    break;
+                case 'correct':
+                    osc.frequency.value = 523;
+                    gain.gain.value = 0.15;
+                    osc.start();
+                    osc.frequency.linearRampToValueAtTime(784, audioCtx.currentTime + 0.15);
+                    osc.stop(audioCtx.currentTime + 0.2);
+                    break;
+                case 'wrong':
+                    osc.frequency.value = 300;
+                    gain.gain.value = 0.1;
+                    osc.start();
+                    osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.15);
+                    osc.stop(audioCtx.currentTime + 0.15);
+                    break;
+                case 'star':
+                    osc.frequency.value = 440;
+                    gain.gain.value = 0.12;
+                    osc.start();
+                    osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+                    osc.stop(audioCtx.currentTime + 0.35);
+                    break;
+                case 'victory':
+                    [523, 659, 784, 1047].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        g.gain.value = 0.12;
+                        o.start(audioCtx.currentTime + i * 0.15);
+                        o.stop(audioCtx.currentTime + i * 0.15 + 0.15);
+                    });
+                    break;
+                case 'collect':
+                    osc.frequency.value = 800;
+                    gain.gain.value = 0.1;
+                    osc.start();
+                    osc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                    osc.stop(audioCtx.currentTime + 0.12);
+                    break;
+            }
+        }
+
+        // ========== 自适应难度系统 ==========
+        function adjustDifficulty(correct) {
+            if (correct) {
+                gameState.adaptive.consecutive++;
+                gameState.adaptive.wrongCount = 0;
+                if (gameState.adaptive.consecutive >= 3 && gameState.adaptive.level < 5) {
+                    gameState.adaptive.level++;
+                    gameState.adaptive.consecutive = 0;
+                }
+            } else {
+                gameState.adaptive.wrongCount++;
+                gameState.adaptive.consecutive = 0;
+                if (gameState.adaptive.wrongCount >= 2 && gameState.adaptive.level > 1) {
+                    gameState.adaptive.level--;
+                    gameState.adaptive.wrongCount = 0;
+                }
+            }
+            gameState.adaptive.totalAttempt++;
+            if (correct) gameState.adaptive.totalCorrect++;
+        }
+
+        function getParams() {
+            const level = gameState.adaptive.level;
+            const ranges = {
+                1: { maxNum: 5, options: 2, items: 3 },
+                2: { maxNum: 10, options: 3, items: 5 },
+                3: { maxNum: 15, options: 3, items: 7 },
+                4: { maxNum: 20, options: 4, items: 8 },
+                5: { maxNum: 50, options: 4, items: 10 }
+            };
+            return ranges[level] || ranges[1];
+        }
+
+        // ========== 本地存储 ==========
+        function saveGame() {
+            const saveData = {
+                playerName: gameState.playerName,
+                totalStars: gameState.totalStars,
+                regionStars: gameState.regionStars,
+                completedScenes: gameState.completedScenes,
+                adaptive: gameState.adaptive,
+                sceneAttempts: gameState.sceneAttempts
+            };
+            localStorage.setItem('mathAdventure', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('mathAdventure');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameState.playerName = data.playerName || '小冒险家';
+                gameState.totalStars = data.totalStars || 0;
+                gameState.regionStars = data.regionStars || {};
+                gameState.completedScenes = data.completedScenes || [];
+                gameState.adaptive = data.adaptive || gameState.adaptive;
+                gameState.sceneAttempts = data.sceneAttempts || {};
+            }
+        }
+
+        // ========== 页面切换 ==========
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.add('hidden');
+                s.classList.add('fade-out');
+            });
+            const target = document.getElementById(screenId);
+            target.classList.remove('hidden');
+            setTimeout(() => target.classList.remove('fade-out'), 50);
+        }
+
+        // ========== 星空背景 ==========
+        function createStars() {
+            const container = document.getElementById('starsBg');
+            container.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-particle';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                star.style.width = (Math.random() * 3 + 1) + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // ========== 世界地图 ==========
+        function renderWorldMap() {
+            document.getElementById('mapPlayerName').textContent = gameState.playerName;
+            document.getElementById('totalStars').textContent = gameState.totalStars;
+            
+            const canvas = document.getElementById('mapCanvas');
+            canvas.innerHTML = '';
+            
+            const positions = [
+                { top: '15%', left: '20%' },
+                { top: '25%', right: '15%' },
+                { top: '55%', left: '15%' },
+                { top: '65%', right: '20%' }
+            ];
+            
+            GAME_DATA.regions.forEach((region, index) => {
+                const pos = positions[index];
+                const island = document.createElement('div');
+                island.className = `region-island region-${region.theme}`;
+                island.style.top = pos.top;
+                if (pos.left) island.style.left = pos.left;
+                if (pos.right) island.style.right = pos.right;
+                
+                const isUnlocked = gameState.totalStars >= region.starsRequired;
+                const regionStars = gameState.regionStars[region.id] || 0;
+                
+                island.innerHTML = `
+                    <div class="region-icon">
+                        ${region.icon}
+                        ${!isUnlocked ? '<div class="lock-overlay">🔒</div>' : ''}
+                    </div>
+                    <div class="region-name">${region.name}</div>
+                    ${regionStars > 0 ? `<div class="region-stars">${regionStars}</div>` : ''}
+                `;
+                
+                if (isUnlocked) {
+                    island.addEventListener('click', () => enterRegion(region));
+                }
+                
+                canvas.appendChild(island);
+            });
+        }
+
+        // ========== 区域关卡页 ==========
+        function renderRegion() {
+            const region = gameState.currentRegion;
+            document.getElementById('regionTitle').textContent = region.name;
+            
+            const completedCount = region.scenes.filter(s => 
+                gameState.completedScenes.includes(s.id)
+            ).length;
+            document.getElementById('regionProgress').textContent = `${completedCount}/${region.scenes.length} 完成`;
+            
+            const container = document.getElementById('scenesContainer');
+            container.innerHTML = '';
+            
+            region.scenes.forEach((scene, index) => {
+                const isCompleted = gameState.completedScenes.includes(scene.id);
+                const sceneStars = isCompleted ? 3 : 0;
+                
+                // 场景解锁逻辑：第一个场景总是解锁，其他需要前一个完成
+                const isUnlocked = index === 0 || gameState.completedScenes.includes(region.scenes[index - 1].id);
+                
+                const node = document.createElement('div');
+                node.className = `scene-node ${isCompleted ? 'completed' : ''} ${isUnlocked ? 'current' : 'locked'}`;
+                node.innerHTML = `
+                    ${isUnlocked ? scene.icon : ''}
+                    ${sceneStars > 0 ? `<div class="scene-star">⭐</div>` : ''}
+                    <div class="scene-name">${scene.name}</div>
+                `;
+                
+                if (isUnlocked) {
+                    node.addEventListener('click', () => startScene(scene));
+                }
+                
+                container.appendChild(node);
+                
+                if (index < region.scenes.length - 1) {
+                    const connector = document.createElement('div');
+                    connector.className = 'scene-connector';
+                    container.appendChild(connector);
+                }
+            });
+        }
+
+        function enterRegion(region) {
+            gameState.currentRegion = region;
+            renderRegion();
+            showScreen('region');
+            playSound('click');
+        }
+
+        // ========== 游戏场景 ==========
+        let currentGameData = {};
+
+        function startScene(scene) {
+            gameState.currentScene = scene;
+            gameState.currentBattleWins = 0;
+            document.getElementById('gameSceneTitle').textContent = scene.name;
+            resetGameStars();
+            
+            // 重置尝试次数
+            if (!gameState.sceneAttempts[scene.id]) {
+                gameState.sceneAttempts[scene.id] = 0;
+            }
+            
+            renderGameScene(scene);
+            showScreen('game');
+            playSound('click');
+        }
+
+        function renderGameScene(scene) {
+            const container = document.getElementById('gameScene');
+            container.innerHTML = '';
+            
+            switch(scene.type) {
+                case 'collect':
+                    renderCollectScene(container, scene);
+                    break;
+                case 'sequence':
+                    renderSequenceScene(container, scene);
+                    break;
+                case 'count':
+                    renderCountScene(container, scene);
+                    break;
+                case 'battle':
+                    renderBattleScene(container, scene);
+                    break;
+                case 'shop':
+                    renderShopScene(container, scene);
+                    break;
+                case 'subtract':
+                    renderSubtractScene(container, scene);
+                    break;
+                case 'divide':
+                    renderDivideScene(container, scene);
+                    break;
+                case 'shape':
+                    renderShapeScene(container, scene);
+                    break;
+                case 'puzzle':
+                    renderPuzzleScene(container, scene);
+                    break;
+                case 'symmetry':
+                    renderSymmetryScene(container, scene);
+                    break;
+                case 'pattern':
+                    renderPatternScene(container, scene);
+                    break;
+                case 'cipher':
+                    renderCipherScene(container, scene);
+                    break;
+                case 'compare':
+                    renderCompareScene(container, scene);
+                    break;
+                case 'odd':
+                    renderOddScene(container, scene);
+                    break;
+                case 'trade':
+                    renderTradeScene(container, scene);
+                    break;
+                case 'chain':
+                    renderChainScene(container, scene);
+                    break;
+                case 'shadow':
+                    renderShadowScene(container, scene);
+                    break;
+                case 'fold':
+                    renderFoldScene(container, scene);
+                    break;
+                case 'balance':
+                    renderBalanceScene(container, scene);
+                    break;
+                case 'arrange':
+                    renderArrangeScene(container, scene);
+                    break;
+                case 'mazeodd':
+                    renderMazeOddScene(container, scene);
+                    break;
+            }
+        }
+
+        // ========== 收集类场景 - 果园摘苹果 ==========
+        function renderCollectScene(container, scene) {
+            const params = getParams();
+            const targetCount = Math.min(params.items, 8);
+            
+            currentGameData = {
+                type: 'collect',
+                target: targetCount,
+                collected: 0
+            };
+            
+            updateHint(`帮小狐狸摘 ${targetCount} 个苹果吧！点击苹果摘下来~`);
+            
+            const html = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#87CEEB 0%,#98FB98 70%,#228B22 100%);z-index:0;"></div>
+                <div class="task-box">
+                    <p class="task-text">帮小狐狸摘 <span class="task-highlight">${targetCount}</span> 个苹果放进篮子</p>
+                </div>
+                <div class="tree-container">
+                    <div class="tree">🌳</div>
+                    ${generateApples(targetCount)}
+                    <div class="basket" id="basket">🧺</div>
+                </div>
+            `;
+            container.innerHTML = html;
+            
+            // 添加苹果点击事件
+            for (let i = 0; i < targetCount; i++) {
+                const apple = document.getElementById(`apple-${i}`);
+                if (apple) {
+                    apple.addEventListener('click', () => collectApple(apple, i));
+                }
+            }
+        }
+
+        function generateApples(count) {
+            let html = '';
+            const positions = [
+                { top: '8%', left: '25%' },
+                { top: '12%', left: '55%' },
+                { top: '5%', left: '70%' },
+                { top: '22%', left: '15%' },
+                { top: '25%', left: '45%' },
+                { top: '20%', left: '72%' },
+                { top: '35%', left: '28%' },
+                { top: '38%', left: '58%' }
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                const pos = positions[i % positions.length];
+                html += `<div class="apple" id="apple-${i}" style="top: ${pos.top}; left: ${pos.left};">🍎</div>`;
+            }
+            return html;
+        }
+
+        function collectApple(apple, index) {
+            if (apple.classList.contains('collected')) return;
+            
+            apple.classList.add('collected');
+            currentGameData.collected++;
+            playSound('collect');
+            
+            const basket = document.getElementById('basket');
+            basket.classList.add('shake');
+            setTimeout(() => basket.classList.remove('shake'), 500);
+            
+            if (currentGameData.collected >= currentGameData.target) {
+                basket.classList.add('full');
+                setTimeout(() => completeCollectScene(), 500);
+            }
+        }
+
+        function completeCollectScene() {
+            const stars = calculateStars();
+            const sceneId = gameState.currentScene.id;
+            
+            if (!gameState.completedScenes.includes(sceneId)) {
+                gameState.completedScenes.push(sceneId);
+                gameState.totalStars += stars;
+                gameState.regionStars[gameState.currentRegion.id] = 
+                    (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+            }
+            
+            gameState.sceneAttempts[sceneId]++;
+            adjustDifficulty(true);
+            saveGame();
+            showReward(stars);
+        }
+
+        // ========== 排列类场景 - 蘑菇排队 ==========
+        function renderSequenceScene(container, scene) {
+            const colors = ['🔴', '🔵', '🟡', '🟢'];
+            const params = getParams();
+            const patternLength = Math.min(params.options, 2); // 2种颜色交替
+            const pattern = [colors[0], colors[1]]; // 红-蓝交替
+            
+            // 生成4个空槽位 + 提示前2个
+            const totalSlots = 4;
+            const hintSlots = 2; // 前2个已经放好作为提示
+            const emptySlots = totalSlots - hintSlots; // 需要填2个
+            
+            currentGameData = {
+                type: 'sequence',
+                pattern: pattern,
+                totalSlots: totalSlots,
+                hintSlots: hintSlots,
+                filledCount: 0,
+                targetFills: emptySlots,
+                slotValues: []
+            };
+            
+            // 前2个是提示（已填好），后2个需要用户填
+            for (let i = 0; i < hintSlots; i++) {
+                currentGameData.slotValues[i] = pattern[i % pattern.length];
+            }
+            for (let i = hintSlots; i < totalSlots; i++) {
+                currentGameData.slotValues[i] = null;
+            }
+            
+            updateHint(`按照 ${pattern.join('、')} 的顺序，帮蘑菇排好队！`);
+            
+            let slotsHtml = '';
+            for (let i = 0; i < totalSlots; i++) {
+                const isHint = i < hintSlots;
+                const val = currentGameData.slotValues[i];
+                slotsHtml += `
+                    <div class="sequence-slot ${isHint ? 'filled hint' : ''}" 
+                         id="slot-${i}" 
+                         data-index="${i}"
+                         onclick="tapSlot(${i})">
+                        ${val ? `🍄${val}` : '<span style="color:#aaa;font-size:14px;">?</span>'}
+                    </div>
+                `;
+            }
+            
+            // 底部选项：2个蘑菇供选择（正确答案 + 干扰项）
+            const correctAnswer = pattern[hintSlots % pattern.length]; // 第3个应该是红
+            const nextCorrect = pattern[(hintSlots + 1) % pattern.length]; // 第4个应该是蓝
+            const distractor = colors[2]; // 🟡作为干扰
+            
+            const choices = shuffleArray([correctAnswer, nextCorrect, distractor]);
+            
+            let itemsHtml = '';
+            choices.forEach((item, i) => {
+                itemsHtml += `
+                    <div class="sequence-item" 
+                         id="seq-item-${i}"
+                         data-color="${item}"
+                         onclick="selectMushroom(${i}, '${item}')">
+                        🍄${item}
+                    </div>
+                `;
+            });
+            
+            currentGameData.choices = choices;
+            currentGameData.selectedItem = null;
+            currentGameData.selectedIdx = null;
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#2E8B57 0%,#90EE90 50%,#F5DEB3 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">按照 <span class="task-highlight">${pattern.join(' → ')}</span> 的顺序排队</p>
+                    <p style="font-size:14px;color:#666;margin-top:5px;">先选一个蘑菇，再点空位放进去</p>
+                </div>
+                <div class="sequence-area" style="z-index:10;position:relative;">
+                    <div class="sequence-slots">${slotsHtml}</div>
+                    <div class="sequence-items" id="itemsContainer">${itemsHtml}</div>
+                </div>
+            `;
+        }
+
+        function selectMushroom(index, color) {
+            // 高亮选中的蘑菇
+            document.querySelectorAll('.sequence-item').forEach(el => {
+                el.style.outline = 'none';
+                el.style.transform = '';
+            });
+            const el = document.getElementById(`seq-item-${index}`);
+            if (el) {
+                el.style.outline = '3px solid var(--primary)';
+                el.style.transform = 'scale(1.1)';
+            }
+            currentGameData.selectedItem = color;
+            currentGameData.selectedIdx = index;
+            playSound('click');
+        }
+
+        function tapSlot(slotIndex) {
+            if (currentGameData.selectedItem === null) {
+                updateHint('先选下面的蘑菇，再点空位放进去~');
+                return;
+            }
+            if (slotIndex < currentGameData.hintSlots) return; // 提示槽不能改
+            if (currentGameData.slotValues[slotIndex] !== null) return; // 已填不能改
+            
+            const slot = document.getElementById(`slot-${slotIndex}`);
+            const placedColor = currentGameData.selectedItem;
+            
+            // 检查是否正确
+            const expectedColor = currentGameData.pattern[slotIndex % currentGameData.pattern.length];
+            
+            if (placedColor === expectedColor) {
+                // 正确！
+                slot.innerHTML = `🍄${placedColor}`;
+                slot.classList.add('filled', 'correct');
+                currentGameData.slotValues[slotIndex] = placedColor;
+                currentGameData.filledCount++;
+                
+                // 标记已用
+                const el = document.getElementById(`seq-item-${currentGameData.selectedIdx}`);
+                if (el) el.classList.add('placed');
+                
+                playSound('correct');
+                updateHint('太棒了！继续~');
+                
+                currentGameData.selectedItem = null;
+                currentGameData.selectedIdx = null;
+                
+                // 检查是否完成
+                if (currentGameData.filledCount >= currentGameData.targetFills) {
+                    setTimeout(() => {
+                        const stars = calculateStars();
+                        const sceneId = gameState.currentScene.id;
+                        if (!gameState.completedScenes.includes(sceneId)) {
+                            gameState.completedScenes.push(sceneId);
+                            gameState.totalStars += stars;
+                            gameState.regionStars[gameState.currentRegion.id] = 
+                                (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                        }
+                        gameState.sceneAttempts[sceneId]++;
+                        adjustDifficulty(true);
+                        saveGame();
+                        showReward(stars);
+                    }, 500);
+                }
+            } else {
+                // 不对，轻轻提示
+                slot.style.animation = 'shake 0.4s ease';
+                setTimeout(() => slot.style.animation = '', 400);
+                playSound('wrong');
+                updateHint('好像不太对，再试试看？');
+            }
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // (旧拖拽代码已移除，蘑菇排队改用选择+点击模式)
+
+        // ========== 点数场景 - 树洞寻宝 ==========
+        function renderCountScene(container, scene) {
+            const params = getParams();
+            const targetCount = Math.min(params.items, 8);
+            
+            currentGameData = {
+                type: 'count',
+                target: targetCount
+            };
+            
+            updateHint(`数一数树洞里有几颗果子？`);
+            
+            // 在树洞区域内随机散布果子
+            const fruits = ['🍎', '🍊', '🍇', '🍓', '🌰', '🫐', '🍒', '🍑'];
+            const chosenFruit = fruits[Math.floor(Math.random() * fruits.length)];
+            
+            let fruitHtml = '';
+            for (let i = 0; i < targetCount; i++) {
+                const top = 15 + Math.random() * 60;
+                const left = 15 + Math.random() * 65;
+                fruitHtml += `<div style="position:absolute;top:${top}%;left:${left}%;font-size:32px;z-index:15;animation:bounceIn 0.4s ease ${i*0.08}s both;cursor:pointer;user-select:none;" onclick="this.style.transform='scale(1.3)';setTimeout(()=>this.style.transform='',200)">${chosenFruit}</div>`;
+            }
+            
+            // 生成选项：正确答案 + 附近的干扰项
+            const options = [targetCount];
+            const offsets = [-2, -1, 1, 2, 3];
+            for (const off of offsets) {
+                const val = targetCount + off;
+                if (val >= 1 && val <= 15 && !options.includes(val)) {
+                    options.push(val);
+                }
+                if (options.length >= 5) break;
+            }
+            const shuffledOptions = shuffleArray(options);
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#87CEEB 0%,#228B22 40%,#8B4513 80%,#654321 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">树洞里藏着果子，数数看有 <span class="task-highlight">几颗</span> ？</p>
+                    <p style="font-size:13px;color:#888;margin-top:4px;">点一下果子帮你数</p>
+                </div>
+                <div style="position:relative;width:90vw;max-width:400px;height:55vh;max-height:350px;margin:10px auto;z-index:10;">
+                    <div style="position:absolute;top:10%;left:25%;font-size:180px;z-index:5;opacity:0.9;">🌳</div>
+                    <div style="position:absolute;top:30%;left:30%;width:55%;height:50%;background:radial-gradient(ellipse,#3d2b1f 0%,#2a1a0e 70%);border-radius:50%;border:6px solid #5c3d2e;z-index:8;"></div>
+                    ${fruitHtml}
+                </div>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;z-index:20;position:relative;margin-top:10px;">
+                    ${shuffledOptions.map(n => `
+                        <button class="battle-option" onclick="checkCountAnswer(${n}, ${targetCount})" style="padding:12px 22px;font-size:20px;min-width:48px;">
+                            ${n}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function checkCountAnswer(answer, target) {
+            const options = document.querySelectorAll('.battle-option');
+            options.forEach(opt => opt.disabled = true);
+            
+            if (answer === target) {
+                document.querySelector(`[onclick="checkCountAnswer(${answer}, ${target})"]`).classList.add('correct');
+                playSound('correct');
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                document.querySelector(`[onclick="checkCountAnswer(${answer}, ${target})"]`).classList.add('wrong');
+                playSound('wrong');
+                adjustDifficulty(false);
+                updateHint('再试试看？点一下果子帮你数哦~');
+                
+                setTimeout(() => {
+                    options.forEach(opt => {
+                        opt.classList.remove('wrong');
+                        opt.disabled = false;
+                    });
+                }, 1000);
+            }
+        }
+
+        // ========== 战斗场景 ==========
+        function renderBattleScene(container, scene) {
+            currentGameData = {
+                type: 'battle',
+                wins: 0,
+                total: 3
+            };
+            
+            updateHint('帮助小狐狸打败守卫！');
+            
+            container.innerHTML = `
+                <div class="battle-container">
+                    <div class="battle-progress">
+                        ${Array(3).fill(0).map((_, i) => `<div class="battle-pip" id="pip-${i}"></div>`).join('')}
+                    </div>
+                    <div class="battle-arena">
+                        <div class="hero">🦊</div>
+                        <div class="monster">${scene.icon}</div>
+                    </div>
+                    <div class="battle-question" id="battleQuestion">
+                        ${generateBattleQuestion()}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateBattleQuestion() {
+            const params = getParams();
+            const maxN = Math.max(params.maxNum, 5); // 保底至少5
+            const questions = [
+                // 加法情境：收集宝石
+                () => {
+                    const a = Math.floor(Math.random() * Math.min(maxN, 6)) + 1;
+                    const b = Math.floor(Math.random() * Math.min(maxN, 6)) + 1;
+                    const answer = a + b;
+                    const options = generateOptions(answer, params.options, answer + 5);
+                    return {
+                        text: `你找到了 ${a} 颗红宝石和 ${b} 颗蓝宝石，一共几颗？`,
+                        answer: answer,
+                        options: options,
+                        hint: '把两种宝石合在一起数！'
+                    };
+                },
+                // 减法情境：使用药水
+                () => {
+                    const total = Math.floor(Math.random() * Math.min(maxN, 8)) + 4; // 至少4
+                    const used = Math.floor(Math.random() * (total - 1)) + 1; // 至少用1，保证答案≥1
+                    const answer = total - used;
+                    return {
+                        text: `你有 ${total} 瓶药水，用了 ${used} 瓶，还剩几瓶？`,
+                        answer: answer,
+                        options: generateOptions(answer, params.options, total + 3),
+                        hint: '用掉的要从总数里减掉哦'
+                    };
+                },
+                // 比较情境：找钥匙
+                () => {
+                    let a = Math.floor(Math.random() * Math.min(maxN, 6)) + 2;
+                    let b = Math.floor(Math.random() * Math.min(maxN, 6)) + 2;
+                    if (a === b) b += 1; // 避免相等
+                    const bigger = Math.max(a, b);
+                    const smaller = Math.min(a, b);
+                    const answer = bigger - smaller;
+                    return {
+                        text: `金钥匙 ${a} 把，银钥匙 ${b} 把，哪种多？多几把？`,
+                        answer: answer,
+                        options: generateOptions(answer, params.options, Math.max(a, b) + 3),
+                        hint: '多的减去少的就是差'
+                    };
+                }
+            ];
+            
+            const question = questions[Math.floor(Math.random() * questions.length)]();
+            currentGameData.currentAnswer = question.answer;
+            
+            updateHint(question.hint);
+            
+            return `
+                <p class="battle-question-text">${question.text}</p>
+                <div class="battle-options">
+                    ${question.options.map(opt => `
+                        <button class="battle-option" onclick="checkBattleAnswer(${opt}, ${question.answer})">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function generateOptions(answer, count, max) {
+            const options = [answer];
+            while (options.length < count) {
+                const random = Math.floor(Math.random() * max) + 1;
+                if (!options.includes(random) && random > 0) {
+                    options.push(random);
+                }
+            }
+            return shuffleArray(options);
+        }
+
+        function checkBattleAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('correct');
+                currentGameData.wins++;
+                document.getElementById(`pip-${currentGameData.wins - 1}`).classList.add('filled');
+                
+                if (currentGameData.wins >= currentGameData.total) {
+                    setTimeout(() => {
+                        const stars = calculateStars();
+                        const sceneId = gameState.currentScene.id;
+                        
+                        if (!gameState.completedScenes.includes(sceneId)) {
+                            gameState.completedScenes.push(sceneId);
+                            gameState.totalStars += stars;
+                            gameState.regionStars[gameState.currentRegion.id] = 
+                                (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                        }
+                        
+                        gameState.sceneAttempts[sceneId]++;
+                        adjustDifficulty(true);
+                        saveGame();
+                        showReward(stars);
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        document.getElementById('battleQuestion').innerHTML = generateBattleQuestion();
+                    }, 800);
+                }
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected) {
+                        btn.classList.add('wrong');
+                    }
+                    if (parseInt(btn.textContent) === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+                adjustDifficulty(false);
+                updateHint('再试试看？你可以的！');
+                
+                setTimeout(() => {
+                    document.getElementById('battleQuestion').innerHTML = generateBattleQuestion();
+                }, 1500);
+            }
+        }
+
+        // ========== 商店场景 ==========
+        function renderShopScene(container, scene) {
+            const params = getParams();
+            const maxPrice = Math.max(Math.min(params.maxNum, 8), 4); // 保底4，上限8
+            
+            // 先确定总价(wallet)，再反向构造商品，保证有解
+            // 随机选两件价格，加起来 = wallet
+            const priceA = Math.floor(Math.random() * Math.min(maxPrice - 1, 4)) + 1; // 1~4
+            const priceB = maxPrice - priceA; // 保证 A+B = maxPrice
+            if (priceB < 1) { // 边界保护
+                return renderShopScene(container, scene);
+            }
+            
+            // 构造4件商品：2件是正确答案，2件是干扰
+            const correctItems = [
+                { name: '魔杖', emoji: '🪄', price: priceA },
+                { name: '药水', emoji: '🧪', price: priceB }
+            ];
+            
+            // 干扰项价格：不能和任何正确项组合凑出wallet
+            const distractorPrice1 = priceA + 1; // 或其他
+            const distractorPrice2 = Math.max(priceB - 1, 1);
+            const wrongItems = [
+                { name: '宝石', emoji: '💎', price: Math.min(distractorPrice1, maxPrice) },
+                { name: '帽子', emoji: '🎩', price: Math.min(distractorPrice2, maxPrice) }
+            ];
+            
+            const items = shuffleArray([...correctItems, ...wrongItems]);
+            const wallet = maxPrice; // 总金币 = 两件正确商品价格之和
+            
+            currentGameData = {
+                type: 'shop',
+                wallet: wallet,
+                targetTotal: wallet,
+                cart: [],
+                items: items
+            };
+            
+            updateHint('用金币买两样东西，正好花完！选错了可以点已选商品取消~');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#2C1810 0%,#4A2C17 30%,#654321 70%,#8B6914 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">你有 <span class="task-highlight">${wallet}</span> 枚金币💰，买两样东西正好花完！</p>
+                </div>
+                <div class="shop-container" style="z-index:10;position:relative;">
+                    <div class="wallet-display">
+                        💰 剩余 <span id="walletAmount" style="font-weight:bold;font-size:22px;">${wallet}</span> 枚
+                    </div>
+                    <div class="shop-counter">
+                        ${items.map((item, i) => `
+                            <div class="shop-item" id="shop-item-${i}" onclick="selectShopItem(${i})">
+                                <div class="shop-item-icon">${item.emoji}</div>
+                                <div style="font-size:12px;color:#666;">${item.name}</div>
+                                <div class="shop-item-price">${item.price}💰</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="cart-display" id="cartDisplay" style="min-height:40px;"></div>
+                </div>
+            `;
+        }
+
+        function selectShopItem(index) {
+            const item = currentGameData.items[index];
+            
+            // 如果已选中，点击取消
+            if (currentGameData.cart.includes(index)) {
+                currentGameData.cart = currentGameData.cart.filter(i => i !== index);
+                currentGameData.wallet += item.price;
+                document.getElementById(`shop-item-${index}`).classList.remove('selected');
+                document.getElementById('walletAmount').textContent = currentGameData.wallet;
+                
+                // 更新购物车显示
+                const cart = document.getElementById('cartDisplay');
+                cart.innerHTML = currentGameData.cart.map(i => 
+                    `<span class="cart-item" onclick="selectShopItem(${i})" style="cursor:pointer;">${currentGameData.items[i].emoji}</span>`
+                ).join('');
+                return;
+            }
+            
+            // 检查是否买得起
+            if (item.price > currentGameData.wallet) {
+                playSound('wrong');
+                updateHint('金币不够啦！试试别的~');
+                return;
+            }
+            
+            if (currentGameData.cart.length >= 2) return; // 最多选2件
+            
+            currentGameData.cart.push(index);
+            currentGameData.wallet -= item.price;
+            
+            document.getElementById(`shop-item-${index}`).classList.add('selected');
+            document.getElementById('walletAmount').textContent = currentGameData.wallet;
+            
+            const cart = document.getElementById('cartDisplay');
+            cart.innerHTML = currentGameData.cart.map(i => 
+                `<span class="cart-item" onclick="selectShopItem(${i})" style="cursor:pointer;">${currentGameData.items[i].emoji}</span>`
+            ).join('');
+            
+            playSound('collect');
+            
+            if (currentGameData.cart.length === 2) {
+                setTimeout(checkShopComplete, 500);
+            }
+        }
+
+        function checkShopComplete() {
+            const total = currentGameData.cart.reduce((sum, i) => sum + currentGameData.items[i].price, 0);
+            
+            if (total === currentGameData.targetTotal) {
+                // 正好花完！
+                playSound('victory');
+                createFloatingStar();
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                showReward(stars);
+            } else {
+                // 花了但没花完
+                const remaining = currentGameData.targetTotal - total;
+                playSound('wrong');
+                updateHint(`还剩 ${remaining} 枚没花完哦，点已选的可以取消重选~`);
+                adjustDifficulty(false);
+                // 不自动重置，让用户自己取消重选
+            }
+        }
+
+        // ========== 减法场景 - 建桥过河 ==========
+        function renderSubtractScene(container, scene) {
+            const params = getParams();
+            const maxN = Math.max(params.maxNum, 5);
+            const total = Math.floor(Math.random() * Math.min(maxN, 6)) + 4; // 至少4
+            const have = Math.floor(Math.random() * (total - 1)) + 1; // 至少有1，保证答案≥1
+            const need = total - have;
+            
+            currentGameData = {
+                type: 'subtract',
+                answer: need
+            };
+            
+            updateHint('帮小狐狸找到需要的木板数！');
+            
+            let planksHtml = '';
+            for (let i = 0; i < have; i++) {
+                planksHtml += '<span style="font-size: 30px; margin: 2px;">🪵</span>';
+            }
+            for (let i = have; i < total; i++) {
+                planksHtml += '<span style="font-size: 30px; margin: 2px; opacity: 0.3;">🪵</span>';
+            }
+            
+            container.innerHTML = `
+                <div class="task-box">
+                    <p class="task-text">小桥需要 <span class="task-highlight">${total}</span> 块木板，你已经找了 <span class="task-highlight">${have}</span> 块，还需要几块？</p>
+                </div>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 60px; margin-bottom: 30px;">🌉</div>
+                    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 20px; display: inline-block;">
+                        <div style="margin-bottom: 15px; color: #666;">已有的木板：</div>
+                        <div style="margin-bottom: 20px;">${planksHtml}</div>
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                        ${generateOptions(need, 4, 10).map(opt => `
+                            <button class="battle-option" onclick="checkSubtractAnswer(${opt}, ${need})" style="padding: 15px 25px;">
+                                ${opt} 块
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkSubtractAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct + ' 块') btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected + ' 块') btn.classList.add('wrong');
+                    if (parseInt(btn.textContent) === correct + ' 块') btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('再想想看？');
+                
+                setTimeout(() => {
+                    document.querySelectorAll('.battle-option').forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 分配场景 - 分蛋糕派对 ==========
+        function renderDivideScene(container, scene) {
+            const params = getParams();
+            const friends = Math.min(params.options, 4);
+            const cakeSize = friends * Math.floor(Math.random() * 2 + 2);
+            
+            currentGameData = {
+                type: 'divide',
+                friends: friends,
+                cakeSize: cakeSize,
+                pieces: Array(friends).fill(0),
+                currentPiece: 0
+            };
+            
+            updateHint(`把蛋糕分成 ${friends} 份，每个朋友一样多！`);
+            
+            container.innerHTML = `
+                <div class="task-box">
+                    <p class="task-text">把 <span class="task-highlight">${cakeSize}</span> 块蛋糕平均分给 ${friends} 个小熊</p>
+                </div>
+                <div class="divide-container">
+                    <div class="cake-display">
+                        🎂
+                        <div class="cake-pieces" id="cakePieces">
+                            ${Array(cakeSize).fill(0).map((_, i) => `<span style="font-size: 20px;" id="cake-piece-${i}">🍰</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="recipients" id="recipients">
+                        ${Array(friends).fill(0).map((_, i) => `
+                            <div class="recipient">
+                                <div class="recipient-avatar">🐻</div>
+                                <div class="recipient-plate" id="plate-${i}"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        ${Array(friends).fill(0).map((_, i) => `
+                            <button class="battle-option" onclick="giveCakePiece(${i})" id="give-btn-${i}" style="padding: 10px 20px;">
+                                给熊${i + 1}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function giveCakePiece(friendIndex) {
+            const data = currentGameData;
+            
+            if (data.pieces[friendIndex] >= Math.ceil(data.cakeSize / data.friends)) {
+                updateHint('这只小熊已经分够啦！');
+                return;
+            }
+            
+            data.pieces[friendIndex]++;
+            
+            const plate = document.getElementById(`plate-${friendIndex}`);
+            plate.innerHTML += '🍰';
+            plate.classList.add('filled');
+            
+            const totalGiven = data.pieces.reduce((a, b) => a + b, 0);
+            const pieceEl = document.getElementById(`cake-piece-${data.cakeSize - totalGiven}`);
+            if (pieceEl) pieceEl.style.opacity = '0.3';
+            
+            playSound('collect');
+            
+            if (totalGiven >= data.cakeSize) {
+                // 检查是否平均分配
+                const allEqual = data.pieces.every(p => p === data.pieces[0]);
+                
+                if (allEqual) {
+                    playSound('victory');
+                    const stars = calculateStars();
+                    const sceneId = gameState.currentScene.id;
+                    
+                    if (!gameState.completedScenes.includes(sceneId)) {
+                        gameState.completedScenes.push(sceneId);
+                        gameState.totalStars += stars;
+                        gameState.regionStars[gameState.currentRegion.id] = 
+                            (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                    }
+                    
+                    gameState.sceneAttempts[sceneId]++;
+                    adjustDifficulty(true);
+                    saveGame();
+                    showReward(stars);
+                } else {
+                    playSound('wrong');
+                    adjustDifficulty(false);
+                    updateHint('分得不一样多哦~再调整一下！');
+                    
+                    // 重置
+                    setTimeout(() => {
+                        data.pieces = Array(data.friends).fill(0);
+                        document.querySelectorAll('.recipient-plate').forEach(plate => {
+                            plate.innerHTML = '';
+                            plate.classList.remove('filled');
+                        });
+                        document.querySelectorAll('.cake-pieces span').forEach(p => p.style.opacity = '1');
+                    }, 1500);
+                }
+            }
+        }
+
+        // ========== 图形场景 - 城堡大门：空间分解推理 ==========
+        function renderShapeScene(container, scene) {
+            // 核心思维：空间分解——看完整图形，找出缺失的那块
+            // 在3x3网格中，每个形状由若干方格组成，绿色部分已有，找出黄色缺失部分
+            const puzzles = [
+                {
+                    name: '台阶形',
+                    target: [[0,0],[1,0],[1,1],[2,0],[2,1],[2,2]],
+                    given: [[0,0],[1,0],[2,0]],
+                    answer: [[1,1],[2,1],[2,2]]
+                },
+                {
+                    name: 'T字形',
+                    target: [[0,0],[0,1],[0,2],[1,1],[2,1]],
+                    given: [[0,0],[0,1],[0,2]],
+                    answer: [[1,1],[2,1]]
+                },
+                {
+                    name: 'L形',
+                    target: [[0,0],[1,0],[2,0],[2,1],[2,2]],
+                    given: [[2,0],[2,1],[2,2]],
+                    answer: [[0,0],[1,0]]
+                },
+                {
+                    name: '十字形',
+                    target: [[0,1],[1,0],[1,1],[1,2],[2,1]],
+                    given: [[0,1],[1,1],[2,1]],
+                    answer: [[1,0],[1,2]]
+                },
+                {
+                    name: '小山形',
+                    target: [[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
+                    given: [[1,0],[2,0],[2,1],[2,2]],
+                    answer: [[0,1],[1,1],[1,2]]
+                },
+                {
+                    name: '箭头形',
+                    target: [[0,1],[1,0],[1,1],[1,2],[2,1]],
+                    given: [[1,0],[1,1],[1,2]],
+                    answer: [[0,1],[2,1]]
+                },
+                {
+                    name: 'Z字形',
+                    target: [[0,0],[0,1],[1,1],[1,2],[2,2]],
+                    given: [[0,0],[0,1],[1,1]],
+                    answer: [[1,2],[2,2]]
+                },
+                {
+                    name: '大U形',
+                    target: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,1],[2,2]],
+                    given: [[2,0],[2,1],[2,2]],
+                    answer: [[0,0],[0,2],[1,0],[1,2]]
+                }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const N = 3;
+            
+            // 辅助：渲染3x3网格
+            function gridHTML(cells, filledColor, emptyColor, cellSize, borderColor) {
+                const cellSet = new Set(cells.map(c => c[0]*10+c[1]));
+                let html = `<div style="display:inline-grid;grid-template-columns:repeat(${N},${cellSize}px);gap:2px;background:${emptyColor};padding:4px;border-radius:10px;${borderColor ? 'border:2px solid '+borderColor : ''}">`;
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        const filled = cellSet.has(r*10+c);
+                        html += `<div style="width:${cellSize}px;height:${cellSize}px;border-radius:5px;background:${filled ? filledColor : emptyColor};transition:all 0.3s;"></div>`;
+                    }
+                }
+                html += '</div>';
+                return html;
+            }
+            
+            // 组合网格：绿色=已有，黄色=缺失
+            function combinedGridHTML(givenCells, answerCells, cellSize) {
+                const givenSet = new Set(givenCells.map(c => c[0]*10+c[1]));
+                const answerSet = new Set(answerCells.map(c => c[0]*10+c[1]));
+                let html = `<div style="display:inline-grid;grid-template-columns:repeat(${N},${cellSize}px);gap:2px;background:rgba(255,255,255,0.15);padding:4px;border-radius:10px;">`;
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        const key = r*10+c;
+                        const isGiven = givenSet.has(key);
+                        const isAnswer = answerSet.has(key);
+                        const color = isGiven ? '#00B894' : (isAnswer ? '#FDCB6E' : 'rgba(255,255,255,0.1)');
+                        html += `<div style="width:${cellSize}px;height:${cellSize}px;border-radius:5px;background:${color};transition:all 0.3s;"></div>`;
+                    }
+                }
+                html += '</div>';
+                return html;
+            }
+            
+            // 生成错误选项：同数量格子但位置不同
+            function cellsEqual(a, b) {
+                if (a.length !== b.length) return false;
+                const sA = new Set(a.map(c=>c[0]*10+c[1]));
+                const sB = new Set(b.map(c=>c[0]*10+c[1]));
+                return [...sA].every(k => sB.has(k));
+            }
+            
+            function makeWrong() {
+                const count = puzzle.answer.length;
+                const all = [];
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) all.push([r,c]);
+                // 尝试生成连通的形状（更合理）
+                const shuffled = shuffleArray([...all]);
+                return shuffled.slice(0, count);
+            }
+            
+            const wrongs = [];
+            let attempts = 0;
+            while (wrongs.length < 3 && attempts < 100) {
+                const w = makeWrong();
+                if (!cellsEqual(w, puzzle.answer)) {
+                    const isDup = wrongs.some(existing => cellsEqual(existing, w));
+                    if (!isDup) wrongs.push(w);
+                }
+                attempts++;
+            }
+            // 保底：如果凑不够3个错误选项，用翻转/偏移生成
+            while (wrongs.length < 3) {
+                const offset = wrongs.length + 1;
+                const w = puzzle.answer.map(c => [(c[0]+offset)%N, (c[1]+offset)%N]);
+                if (!cellsEqual(w, puzzle.answer) && !wrongs.some(e => cellsEqual(e, w))) {
+                    wrongs.push(w);
+                } else {
+                    // 随机扰动
+                    const w2 = puzzle.answer.map(c => [(c[0]+1)%N, c[1]]);
+                    if (!cellsEqual(w2, puzzle.answer)) wrongs.push(w2);
+                    else wrongs.push([[0,0],[0,1],[1,0]].slice(0, puzzle.answer.length));
+                    break;
+                }
+            }
+            
+            const allOptions = shuffleArray([
+                { cells: puzzle.answer, correct: true },
+                { cells: wrongs[0], correct: false },
+                { cells: wrongs[1], correct: false },
+                { cells: wrongs[2], correct: false }
+            ]);
+            
+            const correctIdx = allOptions.findIndex(o => o.correct);
+            currentGameData = { type: 'shape', correctIndex: correctIdx };
+            
+            updateHint('看看完整形状，绿色已经有了，找出黄色那块！');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#A29BFE 0%,#6c5ce7 50%,#4a3ab5 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">城堡大门有个 <span class="task-highlight">${puzzle.name}</span> 的锁</p>
+                    <p style="font-size:13px;color:#888;margin-top:4px;">
+                        <span style="display:inline-block;width:12px;height:12px;background:#00B894;border-radius:3px;vertical-align:middle;"></span> 已有 
+                        <span style="display:inline-block;width:12px;height:12px;background:#FDCB6E;border-radius:3px;vertical-align:middle;margin-left:8px;"></span> 缺哪块？
+                    </p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                    <div style="display:flex;gap:20px;align-items:center;margin:8px 0;">
+                        <div>
+                            <p style="color:rgba(255,255,255,0.7);font-size:12px;margin-bottom:4px;">🔓 完整形状</p>
+                            ${combinedGridHTML(puzzle.given, puzzle.answer, 38)}
+                        </div>
+                        <div style="font-size:28px;color:white;">→</div>
+                        <div>
+                            <p style="color:rgba(255,255,255,0.7);font-size:12px;margin-bottom:4px;">✅ 已有部分</p>
+                            ${gridHTML(puzzle.given, '#00B894', 'rgba(255,255,255,0.1)', 32)}
+                        </div>
+                    </div>
+                    <p style="color:white;font-size:14px;margin:12px 0 8px;">👆 缺的是哪一块？</p>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                        ${allOptions.map((opt, i) => `
+                            <div id="shape-opt-${i}" onclick="checkShapeOption(${i}, ${correctIdx})"
+                                 style="background:rgba(255,255,255,0.9);border-radius:14px;padding:8px;cursor:pointer;transition:all 0.2s;border:3px solid transparent;">
+                                ${gridHTML(opt.cells, '#FDCB6E', 'rgba(0,0,0,0.06)', 28)}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkShapeOption(selected, correct) {
+            const opts = document.querySelectorAll('[id^="shape-opt-"]');
+            opts.forEach(o => o.style.pointerEvents = 'none');
+            
+            if (selected === correct) {
+                const el = document.getElementById(`shape-opt-${selected}`);
+                el.style.borderColor = '#00B894';
+                el.style.background = 'rgba(0,184,148,0.2)';
+                el.style.transform = 'scale(1.1)';
+                playSound('correct');
+                setTimeout(() => {
+                    playSound('victory');
+                    const stars = calculateStars();
+                    const sceneId = gameState.currentScene.id;
+                    if (!gameState.completedScenes.includes(sceneId)) {
+                        gameState.completedScenes.push(sceneId);
+                        gameState.totalStars += stars;
+                        gameState.regionStars[gameState.currentRegion.id] = 
+                            (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                    }
+                    gameState.sceneAttempts[sceneId]++;
+                    adjustDifficulty(true);
+                    saveGame();
+                    showReward(stars);
+                }, 600);
+            } else {
+                const el = document.getElementById(`shape-opt-${selected}`);
+                el.style.borderColor = '#e74c3c';
+                el.style.animation = 'optionShake 0.5s ease';
+                document.getElementById(`shape-opt-${correct}`).style.borderColor = 'rgba(0,184,148,0.5)';
+                playSound('wrong');
+                adjustDifficulty(false);
+                updateHint('不是这块哦~看看完整形状还缺哪些格子？');
+                setTimeout(() => {
+                    el.style.borderColor = 'transparent';
+                    el.style.animation = '';
+                    document.getElementById(`shape-opt-${correct}`).style.borderColor = 'transparent';
+                    opts.forEach(o => { o.style.pointerEvents = 'auto'; });
+                }, 1200);
+            }
+        }
+
+        // ========== 拼图场景 - 拼图花园：旋转图形 ==========
+        function renderPuzzleScene(container, scene) {
+            // 核心思维：图形旋转/翻转后还是同一个图形——空间变换思维
+            const puzzles = [
+                { shape: '🏰', rotated: '🏰', question: '这个城堡转180°后，还像什么？', answer: '🏰', options: ['🏰', '🚪', '🏔️', '🎪'] },
+                { shape: '🔺', rotated: '🔻', question: '三角形倒过来像什么？', answer: '🔻', options: ['🔻', '⭕', '⬜', '🔷'] },
+                { shape: '⬜', rotated: '▬', question: '方形拉长了变成什么？', answer: '▬', options: ['▬', '🔺', '⭕', '⭐'] },
+                { shape: '🦋', rotated: '🦋', question: '蝴蝶左右翻转后变了吗？', answer: '🦋', options: ['🦋', '🌸', '🍃', '🐛'] }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const shuffledOptions = shuffleArray([...puzzle.options]);
+            
+            currentGameData = { type: 'puzzle', answer: puzzle.answer };
+            
+            updateHint('想象一下图形变化的样子~');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#55a8e6 0%,#87CEEB 30%,#90EE90 70%,#3CB371 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">${puzzle.question}</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;">
+                    <div style="font-size:90px;margin:15px 0;animation:spin 3s ease-in-out infinite;">${puzzle.shape}</div>
+                    <style>@keyframes spin { 0%,100%{transform:rotate(0)} 50%{transform:rotate(10deg)} }</style>
+                    <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${shuffledOptions.map(opt => `
+                            <button class="battle-option" onclick="checkPuzzleAnswer('${opt}', '${puzzle.answer}')" style="padding:15px 20px;font-size:35px;min-width:60px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkPuzzleAnswer(selected, correct) {
+            const items = document.querySelectorAll('.battle-option');
+            items.forEach(item => item.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                showReward(stars);
+            } else {
+                playSound('wrong');
+                adjustDifficulty(false);
+                updateHint('在脑子里转一转，再试试~');
+                setTimeout(() => items.forEach(item => item.disabled = false), 1000);
+            }
+        }
+
+        // ========== 对称场景 - 对称之镜：找对称 ==========
+        function renderSymmetryScene(container, scene) {
+            // 核心思维：判断哪些图形是对称的——轴对称认知
+            const symItems = [
+                { emoji: '🦋', name: '蝴蝶', isSym: true },
+                { emoji: '⭐', name: '星星', isSym: true },
+                { emoji: '🍎', name: '苹果', isSym: true },
+                { emoji: '🌺', name: '花', isSym: true },
+                { emoji: '⚡', name: '闪电', isSym: false },
+                { emoji: '☄️', name: '彗星', isSym: false },
+                { emoji: '🌀', name: '漩涡', isSym: false },
+                { emoji: '🍃', name: '树叶', isSym: false }
+            ];
+            
+            // 随机选4个（2对称+2不对称）
+            const symPool = shuffleArray(symItems.filter(i => i.isSym));
+            const asymPool = shuffleArray(symItems.filter(i => !i.isSym));
+            const choices = shuffleArray([symPool[0], symPool[1], asymPool[0], asymPool[1]]);
+            
+            currentGameData = {
+                type: 'symmetry',
+                found: [],
+                targets: choices.filter(c => c.isSym).map(c => c.emoji)
+            };
+            
+            updateHint('找到能照镜子一模一样的图形（对称图形）！点2个');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#E8D5F5 0%,#D4A5E5 50%,#9B59B6 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">哪些图形照镜子后 <span class="task-highlight">一模一样</span>？点2个！</p>
+                    <p style="font-size:13px;color:#888;margin-top:4px;">对折后左右完全重合就是对称</p>
+                </div>
+                <div style="z-index:10;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px;max-width:320px;margin:10px auto;">
+                    ${choices.map((c, i) => `
+                        <div id="sym-choice-${i}" onclick="toggleSymChoice(${i}, '${c.emoji}', ${c.isSym})" 
+                             style="background:rgba(255,255,255,0.85);border-radius:20px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;border:3px solid transparent;">
+                            <div style="font-size:55px;">${c.emoji}</div>
+                            <div style="font-size:13px;color:#666;margin-top:5px;">${c.name}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="z-index:20;position:relative;text-align:center;">
+                    <div id="symFound" style="font-size:16px;color:white;margin-top:10px;">已找到 0/2</div>
+                </div>
+            `;
+        }
+
+        function toggleSymChoice(index, emoji, isSym) {
+            const el = document.getElementById(`sym-choice-${index}`);
+            if (el.style.borderColor === 'rgb(253, 203, 110)') {
+                // 取消选择
+                el.style.borderColor = 'transparent';
+                currentGameData.found = currentGameData.found.filter(f => f !== emoji);
+                document.getElementById('symFound').textContent = `已找到 ${currentGameData.found.length}/2`;
+                return;
+            }
+            
+            if (currentGameData.found.length >= 2) return;
+            
+            if (isSym) {
+                el.style.borderColor = '#fdcb6e';
+                el.style.background = 'rgba(253,203,110,0.3)';
+                currentGameData.found.push(emoji);
+                playSound('correct');
+            } else {
+                el.style.borderColor = '#e74c3c';
+                el.style.animation = 'shake 0.4s ease';
+                setTimeout(() => { el.style.borderColor = 'transparent'; el.style.animation = ''; }, 500);
+                playSound('wrong');
+                updateHint('对折后左右不一样哦，再看看~');
+                return;
+            }
+            
+            document.getElementById('symFound').textContent = `已找到 ${currentGameData.found.length}/2`;
+            
+            if (currentGameData.found.length >= 2) {
+                setTimeout(() => {
+                    playSound('victory');
+                    const stars = calculateStars();
+                    const sceneId = gameState.currentScene.id;
+                    if (!gameState.completedScenes.includes(sceneId)) {
+                        gameState.completedScenes.push(sceneId);
+                        gameState.totalStars += stars;
+                        gameState.regionStars[gameState.currentRegion.id] = 
+                            (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                    }
+                    gameState.sceneAttempts[sceneId]++;
+                    adjustDifficulty(true);
+                    saveGame();
+                    showReward(stars);
+                }, 500);
+            }
+        }
+
+        // ========== 规律场景 - 彩色石板：图形规律推理 ==========
+        function renderPatternScene(container, scene) {
+            // 核心思维：发现图形变化规律并预测下一个——归纳推理
+            const patterns = [
+                // 二元交替（简单）
+                { seq: ['⬜','⬛','⬜','⬛','❓'], answer: '⬜', options: ['⬜','⬛','🔺','⭕'] },
+                { seq: ['🔺','⬜','🔺','⬜','❓'], answer: '🔺', options: ['🔺','⬜','⬛','⭕'] },
+                { seq: ['🔴','🔵','🔴','🔵','🔴','❓'], answer: '🔵', options: ['🔵','🔴','🟡','🟢'] },
+                { seq: ['🔵','🔵','🔴','🔵','🔵','❓'], answer: '🔴', options: ['🔴','🔵','🟡','🟢'] },
+                // 三个一循环
+                { seq: ['⬜','⬜','⬛','⬜','⬜','❓'], answer: '⬛', options: ['⬛','⬜','🔺','⭕'] },
+                { seq: ['🔺','🔺','⬜','🔺','🔺','❓'], answer: '⬜', options: ['⬜','🔺','⬛','🔵'] },
+                { seq: ['🔴','🔴','🔵','🔴','🔴','❓'], answer: '🔵', options: ['🔵','🔴','🟡','🟢'] },
+                { seq: ['⭐','⭐','🌙','⭐','⭐','❓'], answer: '🌙', options: ['🌙','⭐','🔵','🟡'] },
+                // 递增数量
+                { seq: ['🔴','🔴🔴','🔴🔴🔴','❓'], answer: '🔴🔴🔴🔴', options: ['🔴🔴🔴🔴','🔴🔴🔴','🔴🔴','🔴'] },
+                { seq: ['⬜','⬛⬛','⬛⬛⬛⬛','❓'], answer: '⬛⬛⬛⬛⬛⬛', options: ['⬛⬛⬛⬛⬛⬛','⬛⬛⬛⬛','⬛⬛⬛','⬛⬛'] },
+                // 颜色+形状混合
+                { seq: ['🔴','🔵','🔴🔵','🔵','❓'], answer: '🔴🔵', options: ['🔴🔵','🔴','🔵','🔴🔴'] },
+                { seq: ['⭐','🌙','⭐⭐','🌙🌙','❓'], answer: '⭐⭐⭐', options: ['⭐⭐⭐','⭐⭐','🌙','⭐⭐⭐⭐'] },
+                // 大小规律
+                { seq: ['🔺','🔺🔺','🔺🔺🔺','❓'], answer: '🔺🔺🔺🔺', options: ['🔺🔺🔺🔺','🔺🔺🔺','🔺🔺','🔺'] },
+                { seq: ['⭕','⭕⭕','⭕⭕⭕','❓'], answer: '⭕⭕⭕⭕', options: ['⭕⭕⭕⭕','⭕⭕⭕','⭕⭕','⭕'] }
+            ];
+            
+            const puzzle = patterns[Math.floor(Math.random() * patterns.length)];
+            
+            currentGameData = { type: 'pattern', answer: puzzle.answer };
+            
+            updateHint('看看石板的排列有什么规律？');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#4a4a4a 0%,#666 30%,#888 70%,#aaa 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">按规律，❓应该是什么？</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;">
+                    <div style="background:rgba(255,255,255,0.9);border-radius:20px;padding:20px;display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:15px 0;">
+                        ${puzzle.seq.map((item, i) => `
+                            <div style="width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;
+                                ${item === '❓' ? 'border:3px dashed #e74c3c;background:rgba(231,76,60,0.1);' : 'background:rgba(0,0,0,0.05);'}
+                                ${i > 0 && puzzle.seq[i-1] !== '❓' ? '' : ''}">
+                                ${item}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${shuffleArray([...puzzle.options]).map(opt => `
+                            <button class="battle-option" onclick="checkPatternAnswer('${opt}', '${puzzle.answer}')" style="padding:12px 20px;font-size:30px;min-width:55px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkPatternAnswer(selected, correct) {
+            const items = document.querySelectorAll('.battle-option');
+            items.forEach(item => item.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                showReward(stars);
+            } else {
+                playSound('wrong');
+                adjustDifficulty(false);
+                updateHint('再观察一下前后的规律~');
+                setTimeout(() => items.forEach(item => item.disabled = false), 1000);
+            }
+        }
+
+        // ========== 密码门场景 - 数字规律推理 ==========
+        function renderCipherScene(container, scene) {
+            // 核心思维：观察数列变化，发现隐藏规律
+            const patterns = [
+                // 等差数列：每次+2
+                { seq: [2, 4, 6, 8], question: '?', answer: 10, hint: '每个数比前一个多2~' },
+                { seq: [3, 6, 9, 12], question: '?', answer: 15, hint: '每次加3~' },
+                { seq: [5, 10, 15, 20], question: '?', answer: 25, hint: '每次多5个~' },
+                // 等差递增：差值递增
+                { seq: [1, 3, 6, 10], question: '?', answer: 15, hint: '差值是1、2、3、4...下一个差多少呢？' },
+                { seq: [2, 5, 9, 14], question: '?', answer: 20, hint: '差值在变大：3、4、5...' },
+                // 交替变化
+                { seq: [1, 2, 1, 2, 1], question: '?', answer: 2, hint: '1、2、1、2...两个数交替~' },
+                { seq: [10, 5, 10, 5, 10], question: '?', answer: 5, hint: '10和5轮着来~' },
+                // 递增差：差值本身递增
+                { seq: [2, 3, 5, 8], question: '?', answer: 12, hint: '差值是1、2、3...接下来加几？' },
+                { seq: [1, 2, 4, 7], question: '?', answer: 11, hint: '差值是1、2、3...' },
+                // 递减
+                { seq: [10, 8, 6, 4], question: '?', answer: 2, hint: '越来越少，每次少2个~' },
+                { seq: [9, 7, 5, 3], question: '?', answer: 1, hint: '越来越小，每次少2个~' }
+            ];
+            
+            const puzzle = patterns[Math.floor(Math.random() * patterns.length)];
+            const options = generateOptions(puzzle.answer, 4, Math.max(puzzle.answer + 5, 15));
+            
+            currentGameData = {
+                type: 'cipher',
+                answer: puzzle.answer
+            };
+            
+            updateHint(puzzle.hint);
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);z-index:0;"></div>
+                <div style="position:absolute;width:100%;height:100%;z-index:1;pointer-events:none;">
+                    <div style="position:absolute;top:10%;left:50%;transform:translateX(-50%);font-size:120px;opacity:0.2;">🚪</div>
+                </div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">古老石门上刻着数字，找出规律打开门！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;">
+                    <div style="background:linear-gradient(135deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.05) 100%);border:3px solid rgba(253,203,110,0.5);border-radius:20px;padding:25px;display:inline-flex;gap:15px;flex-wrap:wrap;justify-content:center;margin:15px 0;backdrop-filter:blur(5px);">
+                        ${puzzle.seq.map((num, i) => `
+                            <div style="width:60px;height:60px;background:rgba(255,255,255,0.9);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:#333;box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+                                ${num}
+                            </div>
+                            ${i < puzzle.seq.length - 1 ? '<div style="font-size:24px;color:rgba(255,255,255,0.5);align-self:center;">→</div>' : ''}
+                        `).join('')}
+                        <div style="font-size:24px;color:rgba(255,255,255,0.5);align-self:center;">→</div>
+                        <div style="width:60px;height:60px;background:linear-gradient(135deg,#f39c12 0%,#e74c3c 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:white;box-shadow:0 4px 15px rgba(231,76,60,0.4);animation:pulse 1.5s infinite;">
+                            ?
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:25px;">
+                        ${options.map(opt => `
+                            <button class="battle-option" onclick="checkCipherAnswer(${opt}, ${puzzle.answer})" style="padding:15px 25px;font-size:24px;min-width:60px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                    }
+                </style>
+            `;
+        }
+
+        function checkCipherAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected) btn.classList.add('wrong');
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('再仔细看看数字之间的变化~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 天平谜题场景 - 等量代换 ==========
+        function renderBalanceScene(container, scene) {
+            // 核心思维：如果A=B，那么A可以替换B
+            const puzzles = [
+                { left: ['🍎','🍎'], right: ['🍓','🍓','🍓'], leftName: '🍎', rightName: '🍓', question: '1个🍎 = ?颗🍓', answer: 3, answerEmoji: '🍓' },
+                { left: ['🍎','🍎','🍎'], right: ['🍊','🍊'], leftName: '🍎', rightName: '🍊', question: '3个🍎 = 2个🍊，6个🍎 = ?个🍊', answer: 4, answerEmoji: '🍊' },
+                { left: ['⭐','⭐'], right: ['🔵','🔵','🔵','🔵'], leftName: '⭐', rightName: '🔵', question: '2个⭐ = 4个🔵，1个⭐ = ?个🔵', answer: 2, answerEmoji: '🔵' },
+                { left: ['🎈','🎈','🎈'], right: ['🧸','🧸'], leftName: '🎈', rightName: '🧸', question: '3个🎈 = 2个🧸，几个🎈 = 4个🧸', answer: 6, answerEmoji: '🎈' },
+                { left: ['💎','💎'], right: ['🪙'], leftName: '💎', rightName: '🪙', question: '2颗💎 = 1枚🪙，4颗💎 = ?枚🪙', answer: 2, answerEmoji: '🪙' }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const displayAnswer = puzzle.display || puzzle.answer;
+            
+            // 生成选项
+            const options = [puzzle.answer];
+            const offsets = [0.5, -0.5, 1, -1];
+            for (const off of offsets) {
+                const val = puzzle.answer + off;
+                if (val > 0 && !options.includes(val) && Number.isInteger(val * 2)) {
+                    options.push(val);
+                }
+                if (options.length >= 4) break;
+            }
+            const shuffledOptions = shuffleArray(options);
+            
+            currentGameData = {
+                type: 'balance',
+                answer: puzzle.answer
+            };
+            
+            updateHint('天平两边一样重！找找物品之间的秘密~');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#1a1a2e 0%,#2d3436 50%,#636e72 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">⚖️ 天平两边一样重！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin:20px 0;">
+                        <div style="background:rgba(255,255,255,0.9);border-radius:15px;padding:20px;min-width:100px;">
+                            <div style="font-size:35px;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+                                ${puzzle.left.map(item => `<span>${item}</span>`).join('')}
+                            </div>
+                            <div style="font-size:14px;color:#666;margin-top:8px;">左边</div>
+                        </div>
+                        <div style="font-size:40px;color:#f39c12;">=</div>
+                        <div style="background:rgba(255,255,255,0.9);border-radius:15px;padding:20px;min-width:100px;">
+                            <div style="font-size:35px;display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+                                ${puzzle.right.map(item => `<span>${item}</span>`).join('')}
+                            </div>
+                            <div style="font-size:14px;color:#666;margin-top:8px;">右边</div>
+                        </div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(253,203,110,0.3) 0%,rgba(230,126,34,0.3) 100%);border-radius:15px;padding:15px;margin:15px auto;max-width:350px;">
+                        <p style="font-size:18px;color:white;font-weight:bold;">${puzzle.question}</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:15px;">
+                        ${shuffledOptions.map(opt => `
+                            <button class="battle-option" onclick="checkBalanceAnswer(${opt}, ${puzzle.answer})" style="padding:15px 25px;font-size:22px;min-width:70px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkBalanceAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseFloat(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseFloat(btn.textContent) === selected) btn.classList.add('wrong');
+                    if (parseFloat(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('想想天平两边是不是一样重~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 排列大师场景 - 演绎推理 ==========
+        function renderArrangeScene(container, scene) {
+            // 核心思维：根据线索推理排列
+            // 每题验证：线索必须唯一确定答案
+            const puzzles = [
+                {
+                    // 🐰最前=1, 🐼不在中间→🐼在3, 🐻在2 → 🐼第3
+                    items: ['🐰', '🐻', '🐼'],
+                    positions: ['第一个', '第二个', '第三个'],
+                    clues: ['🐰排第一个', '🐼不在中间'],
+                    answer: 3,
+                    question: '🐼在第几个位置？'
+                },
+                {
+                    // 🌹不在中间→🌹在1或3; 🌻在中间→🌻在2; 🌺不在最前→🌺在3 → 🌹在1
+                    // 问🌹：1
+                    items: ['🌹', '🌻', '🌺'],
+                    positions: ['第一个', '第二个', '第三个'],
+                    clues: ['🌻在中间', '🌺不在最前面'],
+                    answer: 1,
+                    question: '🌹在第几个位置？'
+                },
+                {
+                    // 🍎在🍊前面 → 🍎...🍊; 🍇在中间 → 排列是🍎🍇🍊 → 🍎第1
+                    items: ['🍎', '🍊', '🍇'],
+                    positions: ['第一个', '第二个', '第三个'],
+                    clues: ['🍇在中间', '🍎在🍊前面'],
+                    answer: 1,
+                    question: '🍎在第几个位置？'
+                },
+                {
+                    // 🟡在最前=1; 🔴不在最后→🔴在2; 🔵在3 → 🔴第2
+                    items: ['🔴', '🔵', '🟡'],
+                    positions: ['第一个', '第二个', '第三个'],
+                    clues: ['🟡排第一个', '🔴不在最后'],
+                    answer: 2,
+                    question: '🔴在第几个位置？'
+                },
+                {
+                    // 🐱最后=3; 🐶在🐸前面→🐶...🐸; → 🐶1🐸2🐱3 → 🐸第2
+                    items: ['🐱', '🐶', '🐸'],
+                    positions: ['第一个', '第二个', '第三个'],
+                    clues: ['🐱排最后', '🐶在🐸前面'],
+                    answer: 2,
+                    question: '🐸在第几个位置？'
+                }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const optionNums = [1, 2, 3];
+            
+            currentGameData = {
+                type: 'arrange',
+                answer: puzzle.answer
+            };
+            
+            updateHint(puzzle.clues.join('，') + '，所以...');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);z-index:0;"></div>
+                <div style="position:absolute;width:100%;height:100%;z-index:1;pointer-events:none;">
+                    <div style="position:absolute;top:5%;right:5%;font-size:80px;opacity:0.15;">🎯</div>
+                </div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🎯 排列大师：根据线索找位置</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:15px;">
+                    <div style="background:rgba(255,255,255,0.95);border-radius:15px;padding:15px;margin:10px auto;max-width:350px;">
+                        <p style="font-size:16px;color:#333;margin-bottom:10px;">📝 已知线索：</p>
+                        ${puzzle.clues.map(c => `<p style="font-size:15px;color:#666;margin:5px 0;">• ${c}</p>`).join('')}
+                    </div>
+                    <div style="display:flex;justify-content:center;gap:10px;margin:15px 0;">
+                        ${puzzle.items.map((item, i) => `<div style="font-size:40px;padding:10px;background:rgba(255,255,255,0.8);border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.2);">${item}</div>`).join('')}
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(253,203,110,0.4) 0%,rgba(230,126,34,0.4) 100%);border-radius:15px;padding:15px;margin:15px auto;max-width:350px;">
+                        <p style="font-size:18px;color:white;font-weight:bold;">${puzzle.question}</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:15px;">
+                        ${optionNums.map(n => `
+                            <button class="battle-option" onclick="checkArrangeAnswer(${n}, ${puzzle.answer})" style="padding:15px 30px;font-size:22px;min-width:70px;">
+                                第${n}个
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkArrangeAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes(`第${correct}个`)) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (btn.textContent.includes(`第${selected}个`)) btn.classList.add('wrong');
+                    if (btn.textContent.includes(`第${correct}个`)) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('再仔细想想每个线索~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 逻辑迷宫找不同场景 ==========
+        function renderMazeOddScene(container, scene) {
+            // 核心思维：分类与排除 - 找出不属于同一类的
+            const puzzles = [
+                { items: ['2️⃣','4️⃣','6️⃣','7️⃣','8️⃣'], odd: '7️⃣', oddIndex: 3, hint: '7是单数，其他都是双数' },
+                { items: ['🍎','🍊','🥕','🍇'], odd: '🥕', oddIndex: 2, hint: '🥕是蔬菜，其他都是水果' },
+                { items: ['🐱','🐶','🐟','🚗'], odd: '🚗', oddIndex: 3, hint: '🚗不是动物，其他都是' },
+                { items: ['1️⃣','3️⃣','5️⃣','6️⃣','7️⃣'], odd: '6️⃣', oddIndex: 3, hint: '6是双数，其他都是单数' },
+                { items: ['✈️','🚂','🚢','🎢'], odd: '🎢', oddIndex: 3, hint: '🎢是游乐设施，其他都是交通工具' },
+                { items: ['🔺','⬜','🔺','🔺'], odd: '⬜', oddIndex: 1, hint: '三角形多，方形是不同的' }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            
+            currentGameData = {
+                type: 'mazeodd',
+                answer: puzzle.oddIndex
+            };
+            
+            updateHint('🔍 找出那个不一样的！');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🔮 逻辑迷宫：找出不同类的一个！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:20px 0;">
+                        ${puzzle.items.map((item, i) => `
+                            <button class="battle-option" onclick="checkMazeOddAnswer(${i}, ${puzzle.oddIndex})" 
+                                style="padding:15px 20px;font-size:32px;min-width:60px;height:70px;" id="odd-btn-${i}">
+                                ${item}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-top:15px;">点击选择不同的那一个</p>
+                </div>
+            `;
+        }
+
+        function checkMazeOddAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons[correct].classList.add('correct');
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons[selected].classList.add('wrong');
+                buttons[correct].classList.add('correct');
+                adjustDifficulty(false);
+                updateHint('再想想它们有什么共同点？');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 森林找不同场景 ==========
+        function renderOddScene(container, scene) {
+            // 核心思维：分类与排除 - 找出直观不同类
+            const puzzles = [
+                { items: ['🍎','🍐','🍊','🥕'], odd: '🥕', oddIndex: 3, hint: '🥕不是水果哦' },
+                { items: ['🌲','🌳','🌴','🌵'], odd: '🌵', oddIndex: 3, hint: '🌵是仙人掌，长在沙漠里' },
+                { items: ['🐰','🐿️','🦊','🐟'], odd: '🐟', oddIndex: 3, hint: '🐟住水里，不住森林' },
+                { items: ['🍄','🌿','🍀','🌸'], odd: '🌸', oddIndex: 3, hint: '🌸是花，不长在森林地上' },
+                { items: ['🦉','🐿️','🦔','🐍'], odd: '🐍', oddIndex: 3, hint: '🐍不住在森林里' },
+                { items: ['🍎','🍒','🍇','🥬'], odd: '🥬', oddIndex: 3, hint: '🥬是蔬菜不是水果' }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            
+            currentGameData = {
+                type: 'odd',
+                answer: puzzle.oddIndex
+            };
+            
+            updateHint('🌲 森林里找不同！');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#87CEEB 0%,#98FB98 50%,#228B22 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🌲 森林里藏着不一样的东西！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:20px 0;">
+                        ${puzzle.items.map((item, i) => `
+                            <button class="battle-option" onclick="checkOddAnswer(${i}, ${puzzle.oddIndex})" 
+                                style="padding:15px 20px;font-size:36px;min-width:65px;height:75px;" id="forest-odd-btn-${i}">
+                                ${item}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <p style="color:#333;font-size:14px;margin-top:15px;">点一下找出森林里不属于这里的那个~</p>
+                </div>
+            `;
+        }
+
+        function checkOddAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons[correct].classList.add('correct');
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons[selected].classList.add('wrong');
+                buttons[correct].classList.add('correct');
+                adjustDifficulty(false);
+                updateHint('再看看它们有什么一样的地方~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 松鼠比果场景 - 数量比较 ==========
+        function renderCompareScene(container, scene) {
+            // 核心思维：直观比较两组物品
+            const puzzles = [
+                { left: 3, leftEmoji: '🍎', right: 5, rightEmoji: '🍊', question: '哪边更多？', options: ['左边多', '右边多', '一样多'], answer: 1 },
+                { left: 4, leftEmoji: '⭐', right: 4, rightEmoji: '🌙', question: '哪边更多？', options: ['左边多', '右边多', '一样多'], answer: 2 },
+                { left: 6, leftEmoji: '🐰', right: 2, rightEmoji: '🐛', question: '哪边更多？', options: ['左边多', '右边多', '一样多'], answer: 0 },
+                { left: 3, leftEmoji: '🍇', right: 7, rightEmoji: '🍓', question: '哪边更多？', options: ['左边多', '右边多', '一样多'], answer: 1 },
+                { left: 5, leftEmoji: '💎', right: 5, rightEmoji: '🪙', question: '哪边更多？', options: ['左边多', '右边多', '一样多'], answer: 2 }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            
+            currentGameData = {
+                type: 'compare',
+                answer: puzzle.answer
+            };
+            
+            updateHint('🐿️ 帮松鼠比比哪边果子多！');
+            
+            let leftItems = '';
+            for (let i = 0; i < puzzle.left; i++) {
+                leftItems += `<span style="margin:2px;">${puzzle.leftEmoji}</span>`;
+            }
+            let rightItems = '';
+            for (let i = 0; i < puzzle.right; i++) {
+                rightItems += `<span style="margin:2px;">${puzzle.rightEmoji}</span>`;
+            }
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#87CEEB 0%,#98FB98 50%,#228B22 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🐿️ 松鼠比果：${puzzle.question}</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="display:flex;justify-content:center;align-items:center;gap:20px;margin:20px 0;flex-wrap:wrap;">
+                        <div style="background:rgba(255,255,255,0.9);border-radius:15px;padding:15px;min-width:120px;">
+                            <div style="font-size:28px;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;">${leftItems}</div>
+                            <div style="font-size:12px;color:#666;margin-top:5px;">左边</div>
+                        </div>
+                        <div style="font-size:30px;color:#333;">⚖️</div>
+                        <div style="background:rgba(255,255,255,0.9);border-radius:15px;padding:15px;min-width:120px;">
+                            <div style="font-size:28px;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;">${rightItems}</div>
+                            <div style="font-size:12px;color:#666;margin-top:5px;">右边</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${puzzle.options.map((opt, i) => `
+                            <button class="battle-option" onclick="checkCompareAnswer(${i}, ${puzzle.answer})" style="padding:15px 25px;font-size:18px;min-width:90px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkCompareAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons[correct].classList.add('correct');
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons[selected].classList.add('wrong');
+                buttons[correct].classList.add('correct');
+                adjustDifficulty(false);
+                updateHint('数一数每边各有几个~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 宝石商人场景 - 等价交换 ==========
+        function renderTradeScene(container, scene) {
+            // 核心思维：理解物品之间的换算关系
+            const puzzles = [
+                { have: 6, haveEmoji: '💎', want: 1, wantEmoji: '🔴', rate: 3, question: '6颗💎能换几颗🔴？', answer: 2 },
+                { have: 2, haveEmoji: '🪙', want: 1, wantEmoji: '🥈', rate: 2, question: '2枚🪙能换几枚🥈？', answer: 1 },
+                { have: 10, haveEmoji: '🌿', want: 1, wantEmoji: '🧪', rate: 5, question: '10颗🌿能换几瓶🧪？', answer: 2 },
+                { have: 8, haveEmoji: '⭐', want: 1, wantEmoji: '🎖️', rate: 4, question: '8颗⭐能换几枚🎖️？', answer: 2 },
+                { have: 4, haveEmoji: '🍎', want: 1, wantEmoji: '🍊', rate: 2, question: '4个🍎能换几个🍊？', answer: 2 }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const options = generateOptions(puzzle.answer, 4, puzzle.answer + 3);
+            
+            currentGameData = {
+                type: 'trade',
+                answer: puzzle.answer
+            };
+            
+            updateHint('💎 宝石商人说：几颗换几颗...');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#2C1810 0%,#4A2C17 30%,#654321 70%,#8B6914 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">💎 宝石商人：等价交换！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="background:rgba(255,255,255,0.95);border-radius:15px;padding:15px;margin:15px auto;max-width:300px;">
+                        <p style="font-size:16px;color:#333;">📜 兑换规则：</p>
+                        <p style="font-size:20px;color:#8B6914;font-weight:bold;margin-top:8px;">
+                            ${puzzle.rate}个${puzzle.haveEmoji} = 1个${puzzle.wantEmoji}
+                        </p>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(253,203,110,0.3) 0%,rgba(230,126,34,0.3) 100%);border-radius:15px;padding:15px;margin:15px auto;max-width:320px;">
+                        <p style="font-size:18px;color:white;">你有 <span style="font-weight:bold;font-size:24px;">${puzzle.have}</span> 颗${puzzle.haveEmoji}</p>
+                        <p style="font-size:18px;color:white;margin-top:10px;">${puzzle.question}</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${shuffleArray(options).map(opt => `
+                            <button class="battle-option" onclick="checkTradeAnswer(${opt}, ${puzzle.answer})" style="padding:15px 25px;font-size:22px;min-width:60px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkTradeAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected) btn.classList.add('wrong');
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('想想几颗能换一颗~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 补给车队场景 - 链式计算 ==========
+        function renderChainScene(container, scene) {
+            // 核心思维：分步解决实际问题
+            const puzzles = [
+                { need: 8, have: 5, unit: '🪵', unitName: '木材', each: 1, eachName: '每座桥', question: '需要8根🪵，已经有5根，还差几根？', answer: 3 },
+                { need: 10, have: 4, unit: '📦', unitName: '补给', each: 2, eachName: '每村', question: '需要10箱📦，已有4箱，每个村子给2箱，去几个村子够？', answer: 3 },
+                { need: 6, have: 2, unit: '🔧', unitName: '工具', each: 2, eachName: '每个', question: '需要6个🔧，已有2个，每堆有2个，还要几堆？', answer: 2 },
+                { need: 5, have: 0, unit: '🔑', unitName: '钥匙', each: 1, eachName: '每座桥', question: '要过5座桥🌉，每座桥要1把🔑，共需几把？', answer: 5 },
+                { need: 12, have: 8, unit: '🍎', unitName: '苹果', each: 2, eachName: '每袋', question: '需要12个🍎，已有8个，每袋装2个，还需几袋？', answer: 2 }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const remaining = puzzle.need - puzzle.have;
+            const options = generateOptions(puzzle.answer, 4, puzzle.answer + 4);
+            
+            currentGameData = {
+                type: 'chain',
+                answer: puzzle.answer
+            };
+            
+            updateHint('🚛 帮车队算算需要多少~');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#E17055 0%,#FDCB6E 50%,#00B894 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🚛 补给车队：算算要准备多少！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="background:rgba(255,255,255,0.95);border-radius:15px;padding:15px;margin:15px auto;max-width:340px;">
+                        <p style="font-size:16px;color:#333;margin-bottom:10px;">📋 任务清单：</p>
+                        <p style="font-size:15px;color:#666;">需要：<span style="font-weight:bold;color:#E17055;">${puzzle.need}</span> ${puzzle.unitName}</p>
+                        <p style="font-size:15px;color:#666;">已有：<span style="font-weight:bold;color:#00B894;">${puzzle.have}</span> ${puzzle.unitName}</p>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(253,203,110,0.4) 0%,rgba(230,126,34,0.4) 100%);border-radius:15px;padding:15px;margin:15px auto;max-width:340px;">
+                        <p style="font-size:18px;color:white;">${puzzle.question}</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${shuffleArray(options).map(opt => `
+                            <button class="battle-option" onclick="checkChainAnswer(${opt}, ${puzzle.answer})" style="padding:15px 25px;font-size:22px;min-width:60px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkChainAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected) btn.classList.add('wrong');
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('需要减去已有的，再算算~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 影子之谜场景 - 投影识别 ==========
+        function renderShadowScene(container, scene) {
+            // 核心思维：从轮廓反推原物
+            const puzzles = [
+                { shadow: '🔲', options: ['🟥','🟦','🟧','🟩'], answer: 1, hint: '正方形影子对应正方形~' },
+                { shadow: '🔵', options: ['🟥','🔺','⭕','🟦'], answer: 2, hint: '圆形影子对应圆形~' },
+                { shadow: '▲', options: ['🔵','🟥','🔺','🟦'], answer: 2, hint: '三角形影子对应三角形~' },
+                { shadow: '⬜', options: ['🔵','🔺','🟦','🔲'], answer: 3, hint: '大正方形影子~' },
+                { shadow: '♦️', options: ['🔺','🟥','🔷','⭕'], answer: 2, hint: '菱形影子对应菱形~' }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            const shuffledOptions = shuffleArray([...puzzle.options]);
+            const answerIndex = shuffledOptions.indexOf(puzzle.options[puzzle.answer]);
+            
+            currentGameData = {
+                type: 'shadow',
+                answer: answerIndex
+            };
+            
+            updateHint('🌘 影子看不清，是谁的影子呢？');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#A29BFE 0%,#6C5CE7 50%,#2D3436 100%);z-index:0;"></div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">🌘 影子之谜：这是谁的影子？</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="background:rgba(0,0,0,0.3);border-radius:20px;padding:30px;margin:20px auto;display:inline-block;min-width:150px;min-height:150px;">
+                        <div style="font-size:100px;filter:brightness(0);opacity:0.6;">${puzzle.shadow}</div>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:10px 0;">↓ 选出正确的物品 ↓</p>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:15px;">
+                        ${shuffledOptions.map((opt, i) => `
+                            <button class="battle-option" onclick="checkShadowAnswer(${i}, ${answerIndex})" style="padding:15px 25px;font-size:35px;min-width:70px;" id="shadow-opt-${i}">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkShadowAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons[correct].classList.add('correct');
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons[selected].classList.add('wrong');
+                buttons[correct].classList.add('correct');
+                adjustDifficulty(false);
+                updateHint('想想这个形状是什么样的~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 折纸工坊场景 - 空间想象 ==========
+        function renderFoldScene(container, scene) {
+            // 核心思维：纸折叠/展开后的样子
+            const puzzles = [
+                { question: '一张纸对折1次，变成了几层？', options: [1, 2, 3, 4], answer: 1, hint: '对折就是叠起来，变成2层~' },
+                { question: '一张纸对折2次，变成了几层？', options: [2, 3, 4, 6], answer: 2, hint: '第1次折变2层，第2次折每层又变2层...' },
+                { question: '一张纸对折3次，变成了几层？', options: [4, 6, 8, 10], answer: 2, hint: '每次折，层数翻倍：2→4→8~' },
+                { question: '一张纸对折1次后在中间打1个洞，展开后有2个洞。对折2次后在中间打1个洞，展开后有几个洞？', options: [2, 3, 4, 6], answer: 2, hint: '对折1次=2层=2个洞，对折2次=4层=4个洞' }
+            ];
+            
+            const puzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            
+            currentGameData = {
+                type: 'fold',
+                answer: puzzle.answer
+            };
+            
+            updateHint('📄 折纸展开后变成什么样？');
+            
+            container.innerHTML = `
+                <div style="position:absolute;width:100%;height:100%;background:linear-gradient(180deg,#A29BFE 0%,#6C5CE7 50%,#2D3436 100%);z-index:0;"></div>
+                <div style="position:absolute;width:100%;height:100%;z-index:1;pointer-events:none;">
+                    <div style="position:absolute;top:10%;right:10%;font-size:100px;opacity:0.1;">📄</div>
+                </div>
+                <div class="task-box" style="z-index:20;position:relative;">
+                    <p class="task-text">📄 折纸工坊：想想展开后的样子！</p>
+                </div>
+                <div style="z-index:10;position:relative;text-align:center;padding:20px;">
+                    <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin:20px 0;">
+                        <div style="text-align:center;">
+                            <div style="width:80px;height:80px;background:white;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:40px;">📄</div>
+                            <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:5px;">折纸</p>
+                        </div>
+                        <div style="font-size:30px;color:white;">→</div>
+                        <div style="text-align:center;">
+                            <div style="font-size:50px;animation:pulse 1s infinite;">✂️</div>
+                            <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:5px;">剪一下</p>
+                        </div>
+                        <div style="font-size:30px;color:white;">→</div>
+                        <div style="text-align:center;">
+                            <div style="font-size:50px;animation:pulse 1s infinite;">✨</div>
+                            <p style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:5px;">展开</p>
+                        </div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(253,203,110,0.3) 0%,rgba(230,126,34,0.3) 100%);border-radius:15px;padding:15px;margin:15px auto;max-width:350px;">
+                        <p style="font-size:17px;color:white;">${puzzle.question}</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                        ${puzzle.options.map(opt => `
+                            <button class="battle-option" onclick="checkFoldAnswer(${opt}, ${puzzle.answer})" style="padding:15px 25px;font-size:22px;min-width:60px;">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkFoldAnswer(selected, correct) {
+            const buttons = document.querySelectorAll('.battle-option');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === correct) {
+                playSound('victory');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                
+                const stars = calculateStars();
+                const sceneId = gameState.currentScene.id;
+                
+                if (!gameState.completedScenes.includes(sceneId)) {
+                    gameState.completedScenes.push(sceneId);
+                    gameState.totalStars += stars;
+                    gameState.regionStars[gameState.currentRegion.id] = 
+                        (gameState.regionStars[gameState.currentRegion.id] || 0) + stars;
+                }
+                
+                gameState.sceneAttempts[sceneId]++;
+                adjustDifficulty(true);
+                saveGame();
+                
+                setTimeout(() => showReward(stars), 500);
+            } else {
+                playSound('wrong');
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === selected) btn.classList.add('wrong');
+                    if (parseInt(btn.textContent) === correct) btn.classList.add('correct');
+                });
+                adjustDifficulty(false);
+                updateHint('折纸游戏要多动手试试哦~');
+                
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong', 'correct');
+                        btn.disabled = false;
+                    });
+                }, 1500);
+            }
+        }
+
+        // ========== 辅助函数 ==========
+        function updateHint(text) {
+            document.getElementById('hintArea').innerHTML = `
+                <p class="hint-text">${text}</p>
+            `;
+        }
+
+        function resetGameStars() {
+            const starsEl = document.getElementById('gameStars');
+            starsEl.innerHTML = '<span class="game-star">☆</span><span class="game-star">☆</span><span class="game-star">☆</span>';
+        }
+
+        function calculateStars() {
+            const attempts = gameState.sceneAttempts[gameState.currentScene.id] || 1;
+            if (attempts === 1) return 3;
+            if (attempts <= 3) return 2;
+            return 1;
+        }
+
+        function createFloatingStar() {
+            const star = document.createElement('div');
+            star.className = 'floating-star';
+            star.textContent = '⭐';
+            star.style.left = '50%';
+            star.style.top = '50%';
+            document.body.appendChild(star);
+            
+            setTimeout(() => star.remove(), 1000);
+        }
+
+        // ========== 奖励页 ==========
+        function showReward(stars) {
+            playSound('victory');
+            createConfetti();
+            
+            const rewardStars = document.getElementById('rewardStars');
+            const messages = [
+                '继续加油！',
+                '太棒了！',
+                '完美通关！'
+            ];
+            
+            document.getElementById('rewardMessage').textContent = messages[stars - 1];
+            
+            rewardStars.querySelectorAll('.reward-star').forEach((star, i) => {
+                star.classList.remove('show');
+                if (i < stars) {
+                    setTimeout(() => star.classList.add('show'), 200 + i * 300);
+                }
+            });
+            
+            showScreen('reward');
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // ========== 成长页 ==========
+        function renderProfile() {
+            const content = document.getElementById('profileContent');
+            
+            // 计算解锁的技能
+            const unlockedSkills = new Set(['calc', 'data']); // 默认解锁
+            if (gameState.completedScenes.some(s => s.startsWith('mountain'))) {
+                unlockedSkills.add('calc');
+            }
+            if (gameState.completedScenes.some(s => s.startsWith('castle'))) {
+                unlockedSkills.add('shape');
+            }
+            if (gameState.completedScenes.some(s => s.startsWith('maze'))) {
+                unlockedSkills.add('logic');
+            }
+            
+            // 计算徽章
+            const badges = [
+                { ...GAME_DATA.badges[0], unlocked: gameState.completedScenes.length > 0 },
+                { ...GAME_DATA.badges[1], unlocked: gameState.regionStars['forest'] >= 8 },
+                { ...GAME_DATA.badges[2], unlocked: gameState.regionStars['mountain'] >= 8 },
+                { ...GAME_DATA.badges[3], unlocked: gameState.regionStars['castle'] >= 8 },
+                { ...GAME_DATA.badges[4], unlocked: gameState.regionStars['maze'] >= 8 },
+                { ...GAME_DATA.badges[5], unlocked: gameState.totalStars >= 30 }
+            ];
+            
+            content.innerHTML = `
+                <div class="profile-card">
+                    <div class="card-title">
+                        <span style="font-size: 40px;">🦊</span>
+                        <div>
+                            <div style="font-size: 20px;">${gameState.playerName}</div>
+                            <div style="font-size: 14px; opacity: 0.7;">总共获得 ${gameState.totalStars} 颗星星</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <div class="card-title">🌟 技能树</div>
+                    <div class="skills-grid">
+                        ${GAME_DATA.skills.map(skill => `
+                            <div class="skill-item ${unlockedSkills.has(skill.id) ? 'unlocked' : 'locked'}">
+                                <span class="skill-icon">${skill.icon}</span>
+                                <span class="skill-name">${skill.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <div class="card-title">🐾 我的伙伴</div>
+                    <div class="pet-collection">
+                        <div class="pet-slot unlocked">🦊</div>
+                        ${gameState.totalStars >= 10 ? '<div class="pet-slot unlocked">🐰</div>' : '<div class="pet-slot">🔒</div>'}
+                        ${gameState.totalStars >= 20 ? '<div class="pet-slot unlocked">🐼</div>' : '<div class="pet-slot">🔒</div>'}
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <div class="card-title">🏆 徽章收集</div>
+                    <div class="badges-grid">
+                        ${badges.map(badge => `
+                            <div class="badge-item ${badge.unlocked ? 'unlocked' : ''}" title="${badge.name}">
+                                ${badge.unlocked ? badge.icon : '❓'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <div class="card-title">📊 学习报告</div>
+                    <div style="font-size: 14px; color: #666;">
+                        <p>已完成场景：${gameState.completedScenes.length} / 16</p>
+                        <p>当前难度等级：${gameState.adaptive.level}</p>
+                        <p>正确率：${gameState.adaptive.totalAttempt > 0 ? Math.round(gameState.adaptive.totalCorrect / gameState.adaptive.totalAttempt * 100) : 0}%</p>
+                    </div>
+                </div>
+            `;
+            
+            showScreen('profile');
+        }
+
+        // ========== 事件绑定 ==========
+        function initEventListeners() {
+            // 欢迎页
+            document.getElementById('startBtn').addEventListener('click', () => {
+                initAudio();
+                const name = document.getElementById('playerName').value.trim();
+                if (name) gameState.playerName = name;
+                saveGame();
+                renderWorldMap();
+                showScreen('worldmap');
+                playSound('click');
+            });
+            
+            // 返回按钮
+            document.getElementById('backToMap').addEventListener('click', () => {
+                renderWorldMap();
+                showScreen('worldmap');
+                playSound('click');
+            });
+            
+            document.getElementById('backToRegion').addEventListener('click', () => {
+                renderRegion();
+                showScreen('region');
+                playSound('click');
+            });
+            
+            document.getElementById('backToRegionBtn').addEventListener('click', () => {
+                renderRegion();
+                showScreen('region');
+                playSound('click');
+            });
+            
+            document.getElementById('backToMapBtn').addEventListener('click', () => {
+                renderWorldMap();
+                showScreen('worldmap');
+                playSound('click');
+            });
+            
+            document.getElementById('backFromProfile').addEventListener('click', () => {
+                renderWorldMap();
+                showScreen('worldmap');
+                playSound('click');
+            });
+            
+            // 成长页
+            document.getElementById('profileBtn').addEventListener('click', () => {
+                renderProfile();
+                playSound('click');
+            });
+        }
+
+        // ========== 初始化 ==========
+        function init() {
+            createStars();
+            loadGame();
+            initEventListeners();
+            
+            // 显示欢迎页
+            document.getElementById('playerName').value = gameState.playerName;
+        }
+
+        // 启动游戏
+        init();
+    </script>
+</body>
+</html>
