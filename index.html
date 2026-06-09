@@ -338,6 +338,7 @@
         .region-mountain .region-icon { background: linear-gradient(135deg, #E17055 0%, #d63031 100%); }
         .region-castle .region-icon { background: linear-gradient(135deg, #A29BFE 0%, #6c5ce7 100%); }
         .region-maze .region-icon { background: linear-gradient(135deg, #0984E3 0%, #0652DD 100%); }
+        .region-hundred .region-icon { background: linear-gradient(135deg, #FDCB6E 0%, #F39C12 100%); }
 
         /* 宠物狐狸 */
         .pet-fox {
@@ -1417,11 +1418,26 @@
                     ]
                 },
                 {
+                    id: 'hundred',
+                    name: '百数城堡',
+                    icon: '🏛️',
+                    theme: 'hundred',
+                    starsRequired: 6,
+                    scenes: [
+                        { id: 'hundred_1', name: '数字爬塔', type: 'tower', icon: '🗼' },
+                        { id: 'hundred_2', name: '拆弹专家', type: 'bomb', icon: '💣' },
+                        { id: 'hundred_3', name: '数线跳跳', type: 'numberline', icon: '🎯' },
+                        { id: 'hundred_4', name: '比大小擂台', type: 'battlesize', icon: '⚔️' },
+                        { id: 'hundred_5', name: '凑十魔法', type: 'maketen', icon: '✨' },
+                        { id: 'hundred_6', name: '百数守卫', type: 'battle', icon: '🦁' }
+                    ]
+                },
+                {
                     id: 'castle',
                     name: '图形王国',
                     icon: '🏰',
                     theme: 'castle',
-                    starsRequired: 10,
+                    starsRequired: 12,
                     scenes: [
                         { id: 'castle_1', name: '城堡大门', type: 'shape', icon: '🔑' },
                         { id: 'castle_2', name: '拼图花园', type: 'puzzle', icon: '🧩' },
@@ -1436,7 +1452,7 @@
                     name: '逻辑迷宫',
                     icon: '🔮',
                     theme: 'maze',
-                    starsRequired: 18,
+                    starsRequired: 20,
                     scenes: [
                         { id: 'maze_1', name: '彩色石板', type: 'pattern', icon: '🟦' },
                         { id: 'maze_2', name: '天平谜题', type: 'balance', icon: '⚖️' },
@@ -1459,6 +1475,7 @@
                 { id: 'forest_master', name: '森林勇者', icon: '🌲' },
                 { id: 'mountain_master', name: '山谷勇士', icon: '⛰️' },
                 { id: 'castle_master', name: '城堡骑士', icon: '🏰' },
+                { id: 'hundred_master', name: '百数勇士', icon: '🏛️' },
                 { id: 'maze_master', name: '迷宫大师', icon: '🔮' },
                 { id: 'math_wizard', name: '数学巫师', icon: '🧙' }
             ]
@@ -1648,6 +1665,7 @@
             const positions = [
                 { top: '15%', left: '20%' },
                 { top: '25%', right: '15%' },
+                { top: '40%', left: '35%' },
                 { top: '55%', left: '15%' },
                 { top: '65%', right: '20%' }
             ];
@@ -1815,6 +1833,21 @@
                     break;
                 case 'mazeodd':
                     renderMazeOddScene(container, scene);
+                    break;
+                case 'tower':
+                    renderTowerScene(container, scene);
+                    break;
+                case 'bomb':
+                    renderBombScene(container, scene);
+                    break;
+                case 'numberline':
+                    renderNumberlineScene(container, scene);
+                    break;
+                case 'battlesize':
+                    renderBattlesizeScene(container, scene);
+                    break;
+                case 'maketen':
+                    renderMaketenScene(container, scene);
                     break;
             }
         }
@@ -4099,6 +4132,511 @@
             if (attempts === 1) return 3;
             if (attempts <= 3) return 2;
             return 1;
+        }
+
+        // ========== 百数城堡 - 数字爬塔 ==========
+        function renderTowerScene(container, scene) {
+            const params = getParams();
+            let round = 0;
+            const totalRounds = 3;
+            
+            function generateTowerQuestion() {
+                const tens = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                const tenStart = tens[Math.floor(Math.random() * tens.length)] * 10 + 1;
+                const tenEnd = tenStart + 9;
+                
+                const hideCount = 2 + Math.floor(Math.random() * 2);
+                const allNums = [];
+                for (let i = tenStart; i <= tenEnd; i++) allNums.push(i);
+                
+                const hideable = allNums.filter(n => n % 10 !== 0);
+                const shuffled = hideable.sort(() => Math.random() - 0.5);
+                const hidden = shuffled.slice(0, hideCount).sort((a, b) => a - b);
+                
+                return { tenStart, tenEnd, hidden, currentHiddenIndex: 0 };
+            }
+            
+            let currentQ = generateTowerQuestion();
+            
+            function renderQuestion() {
+                const q = currentQ;
+                const hideNum = q.hidden[q.currentHiddenIndex];
+                
+                container.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:16px;color:var(--text-light);margin-bottom:15px;">🏰 填入塔中缺少的数字</div>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:20px;">
+                            ${Array.from({length: 10}, (_, i) => {
+                                const num = q.tenStart + i;
+                                const isHidden = num === hideNum;
+                                const isTenMultiple = num % 10 === 0;
+                                return `<div style="
+                                    width:70px;height:36px;
+                                    background:${isHidden ? 'rgba(253,203,110,0.3)' : isTenMultiple ? 'var(--accent)' : 'rgba(255,255,255,0.1)'};
+                                    border:2px solid ${isHidden ? '#FDCB6E' : isTenMultiple ? 'var(--accent)' : 'rgba(255,255,255,0.2)'};
+                                    border-radius:8px;
+                                    display:flex;align-items:center;justify-content:center;
+                                    font-size:${isTenMultiple ? '18px' : '16px'};
+                                    font-weight:${isTenMultiple ? 'bold' : 'normal'};
+                                    color:${isHidden ? 'transparent' : isTenMultiple ? 'var(--text-dark)' : 'var(--text-light)'};
+                                    ${isTenMultiple ? 'box-shadow:0 0 15px rgba(253,203,110,0.5);' : ''}
+                                ">${isHidden ? '?' : num}</div>`;
+                            }).reverse().join('')}
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;" id="towerOptions"></div>
+                    </div>
+                `;
+                
+                const correct = hideNum;
+                const options = new Set([correct]);
+                while (options.size < 4) {
+                    const offset = Math.floor(Math.random() * 5) - 2;
+                    const opt = correct + offset;
+                    if (opt > 0 && opt <= 100 && opt !== correct && !options.has(opt)) {
+                        options.add(opt);
+                    }
+                }
+                while (options.size < 4) {
+                    const opt = Math.floor(Math.random() * 20) + 1;
+                    if (opt !== correct) options.add(opt);
+                }
+                
+                const optArr = Array.from(options).sort(() => Math.random() - 0.5);
+                const optContainer = document.getElementById('towerOptions');
+                optArr.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.className = 'battle-option';
+                    btn.style.cssText = 'background:linear-gradient(135deg, var(--accent) 0%, #f9a825 100%);color:var(--text-dark);padding:10px 25px;border-radius:20px;font-size:18px;font-weight:bold;cursor:pointer;';
+                    btn.textContent = opt;
+                    btn.addEventListener('click', () => {
+                        if (opt === correct) {
+                            btn.style.background = 'linear-gradient(135deg, var(--secondary) 0%, #00a085 100%)';
+                            addGameStar();
+                            adjustDifficulty(true);
+                            playSound('correct');
+                            
+                            q.currentHiddenIndex++;
+                            if (q.currentHiddenIndex >= q.hidden.length) {
+                                round++;
+                                if (round >= totalRounds) {
+                                    setTimeout(() => completeScene(), 600);
+                                } else {
+                                    currentQ = generateTowerQuestion();
+                                    setTimeout(() => renderQuestion(), 600);
+                                }
+                            } else {
+                                setTimeout(() => renderQuestion(), 600);
+                            }
+                        } else {
+                            btn.style.background = 'linear-gradient(135deg, var(--danger) 0%, #d63031 100%)';
+                            adjustDifficulty(false);
+                            playSound('wrong');
+                            setTimeout(() => {
+                                btn.style.background = 'linear-gradient(135deg, var(--accent) 0%, #f9a825 100%)';
+                            }, 500);
+                        }
+                    });
+                    optContainer.appendChild(btn);
+                });
+            }
+            
+            renderQuestion();
+        }
+
+        // ========== 百数城堡 - 拆弹专家 ==========
+        function renderBombScene(container, scene) {
+            let round = 0;
+            const totalRounds = 3;
+            
+            function generateBombQuestion() {
+                const level = gameState.adaptive.level;
+                let num;
+                if (level <= 2) {
+                    num = Math.floor(Math.random() * 20) + 11;
+                } else {
+                    num = Math.floor(Math.random() * 80) + 11;
+                }
+                const tens = Math.floor(num / 10);
+                const ones = num % 10;
+                return { num, tens, ones };
+            }
+            
+            let currentQ = generateBombQuestion();
+            let selectedTens = 0;
+            let selectedOnes = 0;
+            
+            function renderQuestion() {
+                selectedTens = 0;
+                selectedOnes = 0;
+                const q = currentQ;
+                
+                container.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:16px;color:var(--text-light);margin-bottom:10px;">💣 拆除炸弹！用十和一凑出这个数</div>
+                        <div style="font-size:60px;font-weight:bold;color:#FDCB6E;margin:15px 0;text-shadow:0 0 20px rgba(253,203,110,0.5);">${q.num}</div>
+                        
+                        <div style="display:flex;justify-content:center;gap:30px;margin:20px 0;">
+                            <div>
+                                <div style="color:var(--text-light);font-size:14px;margin-bottom:8px;">十捆 (10根一捆)</div>
+                                <div style="display:flex;gap:5px;justify-content:center;" id="tensRow"></div>
+                            </div>
+                            <div>
+                                <div style="color:var(--text-light);font-size:14px;margin-bottom:8px;">单个 (1根)</div>
+                                <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;max-width:180px;" id="onesRow"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="font-size:20px;color:var(--text-light);margin:15px 0;" id="bombStatus">
+                            已选: <span style="color:var(--accent);font-weight:bold;" id="selectedDisplay">0</span>
+                        </div>
+                        
+                        <div class="btn" id="bombConfirm" style="opacity:0.5;pointer-events:none;">确认拆弹</div>
+                    </div>
+                `;
+                
+                const tensRow = document.getElementById('tensRow');
+                for (let i = 0; i < 9; i++) {
+                    const btn = document.createElement('div');
+                    btn.style.cssText = 'width:40px;height:40px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;';
+                    btn.textContent = '🔟';
+                    btn.addEventListener('click', () => {
+                        if (btn.style.background.includes('0.3')) {
+                            btn.style.background = 'rgba(255,255,255,0.1)';
+                            btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                            selectedTens--;
+                        } else {
+                            btn.style.background = 'rgba(253,203,110,0.3)';
+                            btn.style.borderColor = '#FDCB6E';
+                            selectedTens++;
+                        }
+                        updateDisplay();
+                    });
+                    tensRow.appendChild(btn);
+                }
+                
+                const onesRow = document.getElementById('onesRow');
+                for (let i = 0; i < 9; i++) {
+                    const btn = document.createElement('div');
+                    btn.style.cssText = 'width:36px;height:36px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all 0.2s;';
+                    btn.textContent = '1️⃣';
+                    btn.addEventListener('click', () => {
+                        if (btn.style.background.includes('0.3')) {
+                            btn.style.background = 'rgba(255,255,255,0.1)';
+                            btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                            selectedOnes--;
+                        } else {
+                            btn.style.background = 'rgba(253,203,110,0.3)';
+                            btn.style.borderColor = '#FDCB6E';
+                            selectedOnes++;
+                        }
+                        updateDisplay();
+                    });
+                    onesRow.appendChild(btn);
+                }
+                
+                function updateDisplay() {
+                    const total = selectedTens * 10 + selectedOnes;
+                    document.getElementById('selectedDisplay').textContent = total;
+                    const confirmBtn = document.getElementById('bombConfirm');
+                    if (total > 0) {
+                        confirmBtn.style.opacity = '1';
+                        confirmBtn.style.pointerEvents = 'auto';
+                    } else {
+                        confirmBtn.style.opacity = '0.5';
+                        confirmBtn.style.pointerEvents = 'none';
+                    }
+                }
+                
+                document.getElementById('bombConfirm').addEventListener('click', () => {
+                    const total = selectedTens * 10 + selectedOnes;
+                    if (total === q.num) {
+                        addGameStar();
+                        adjustDifficulty(true);
+                        playSound('correct');
+                        round++;
+                        if (round >= totalRounds) {
+                            setTimeout(() => completeScene(), 600);
+                        } else {
+                            currentQ = generateBombQuestion();
+                            setTimeout(() => renderQuestion(), 800);
+                        }
+                    } else {
+                        playSound('wrong');
+                        adjustDifficulty(false);
+                        container.querySelector('div').style.animation = 'optionShake 0.5s ease';
+                        setTimeout(() => {
+                            container.querySelector('div').style.animation = '';
+                        }, 500);
+                        selectedTens = 0;
+                        selectedOnes = 0;
+                        renderQuestion();
+                    }
+                });
+            }
+            
+            renderQuestion();
+        }
+
+        // ========== 百数城堡 - 数线跳跳 ==========
+        function renderNumberlineScene(container, scene) {
+            let round = 0;
+            const totalRounds = 3;
+            
+            function generateNumberlineQuestion() {
+                const level = gameState.adaptive.level;
+                let start, end;
+                if (level <= 2) {
+                    start = Math.floor(Math.random() * 10) + 1;
+                    end = start + Math.floor(Math.random() * 8) + 2;
+                } else {
+                    start = Math.floor(Math.random() * 50) + 1;
+                    end = start + Math.floor(Math.random() * 15) + 3;
+                }
+                if (end > 100) end = 100;
+                return { start, end, answer: end - start };
+            }
+            
+            let currentQ = generateNumberlineQuestion();
+            
+            function renderQuestion() {
+                const q = currentQ;
+                const lineMin = Math.max(0, q.start - 5);
+                const lineMax = Math.min(100, q.end + 5);
+                const range = lineMax - lineMin;
+                
+                container.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:16px;color:var(--text-light);margin-bottom:20px;">🎯 从 ${q.start} 跳到 ${q.end}，跳了几格？</div>
+                        
+                        <div style="position:relative;margin:30px 20px;height:80px;">
+                            <div style="position:absolute;top:30px;left:0;right:0;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;"></div>
+                            
+                            <div style="position:absolute;top:15px;left:${((q.start - lineMin) / range) * 100}%;transform:translateX(-50%);">
+                                <div style="font-size:24px;">🦊</div>
+                                <div style="font-size:12px;color:var(--accent);font-weight:bold;">${q.start}</div>
+                            </div>
+                            
+                            <div style="position:absolute;top:15px;left:${((q.end - lineMin) / range) * 100}%;transform:translateX(-50%);">
+                                <div style="font-size:24px;">⭐</div>
+                                <div style="font-size:12px;color:var(--accent);font-weight:bold;">${q.end}</div>
+                            </div>
+                            
+                            ${Array.from({length: Math.min(range + 1, 21)}, (_, i) => {
+                                const num = lineMin + i;
+                                if (range > 20 && num % 5 !== 0 && num !== q.start && num !== q.end) return '';
+                                const pct = ((num - lineMin) / range) * 100;
+                                return `<div style="position:absolute;top:34px;left:${pct}%;transform:translateX(-50%);width:1px;height:8px;background:rgba(255,255,255,0.4);"></div>
+                                <div style="position:absolute;top:44px;left:${pct}%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,0.5);">${num}</div>`;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:30px;" id="nlOptions"></div>
+                    </div>
+                `;
+                
+                const correct = q.answer;
+                const options = new Set([correct]);
+                while (options.size < 4) {
+                    const opt = correct + Math.floor(Math.random() * 7) - 3;
+                    if (opt > 0 && opt !== correct) options.add(opt);
+                }
+                while (options.size < 4) {
+                    const opt = Math.floor(Math.random() * 15) + 1;
+                    if (opt !== correct) options.add(opt);
+                }
+                
+                const optArr = Array.from(options).sort(() => Math.random() - 0.5);
+                const optContainer = document.getElementById('nlOptions');
+                optArr.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.className = 'battle-option';
+                    btn.style.cssText = 'background:linear-gradient(135deg, var(--primary) 0%, #5f4dd0 100%);color:white;padding:12px 25px;border-radius:20px;font-size:18px;font-weight:bold;cursor:pointer;';
+                    btn.textContent = opt;
+                    btn.addEventListener('click', () => {
+                        if (opt === correct) {
+                            btn.style.background = 'linear-gradient(135deg, var(--secondary) 0%, #00a085 100%)';
+                            addGameStar();
+                            adjustDifficulty(true);
+                            playSound('correct');
+                            round++;
+                            if (round >= totalRounds) {
+                                setTimeout(() => completeScene(), 600);
+                            } else {
+                                currentQ = generateNumberlineQuestion();
+                                setTimeout(() => renderQuestion(), 800);
+                            }
+                        } else {
+                            btn.style.background = 'linear-gradient(135deg, var(--danger) 0%, #d63031 100%)';
+                            adjustDifficulty(false);
+                            playSound('wrong');
+                            setTimeout(() => {
+                                btn.style.background = 'linear-gradient(135deg, var(--primary) 0%, #5f4dd0 100%)';
+                            }, 500);
+                        }
+                    });
+                    optContainer.appendChild(btn);
+                });
+            }
+            
+            renderQuestion();
+        }
+
+        // ========== 百数城堡 - 比大小擂台 ==========
+        function renderBattlesizeScene(container, scene) {
+            let round = 0;
+            const totalRounds = 5;
+            
+            function generateCompareQuestion() {
+                const level = gameState.adaptive.level;
+                let a, b;
+                if (level <= 2) {
+                    a = Math.floor(Math.random() * 10) + 1;
+                    b = Math.floor(Math.random() * 10) + 1;
+                } else {
+                    a = Math.floor(Math.random() * 90) + 1;
+                    b = Math.floor(Math.random() * 90) + 1;
+                }
+                if (Math.random() < 0.2) b = a;
+                const answer = a > b ? '>' : a < b ? '<' : '=';
+                return { a, b, answer };
+            }
+            
+            let currentQ = generateCompareQuestion();
+            
+            function renderQuestion() {
+                const q = currentQ;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:16px;color:var(--text-light);margin-bottom:20px;">⚔️ 谁更大？选对符号！</div>
+                        
+                        <div style="display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;">
+                            <div style="background:rgba(108,92,231,0.3);border:3px solid var(--primary);border-radius:20px;padding:20px 30px;min-width:80px;">
+                                <div style="font-size:48px;font-weight:bold;color:white;">${q.a}</div>
+                            </div>
+                            <div style="font-size:40px;color:rgba(255,255,255,0.3);min-width:50px;" id="symbolSlot">？</div>
+                            <div style="background:rgba(225,112,85,0.3);border:3px solid var(--danger);border-radius:20px;padding:20px 30px;min-width:80px;">
+                                <div style="font-size:48px;font-weight:bold;color:white;">${q.b}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex;gap:20px;justify-content:center;margin-top:25px;" id="symbolOptions"></div>
+                    </div>
+                `;
+                
+                const symbols = ['>', '=', '<'];
+                const optContainer = document.getElementById('symbolOptions');
+                symbols.forEach(sym => {
+                    const btn = document.createElement('div');
+                    btn.style.cssText = 'width:70px;height:70px;background:rgba(255,255,255,0.1);border:3px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:36px;color:white;transition:all 0.3s;font-weight:bold;';
+                    btn.textContent = sym;
+                    btn.addEventListener('click', () => {
+                        if (sym === q.answer) {
+                            document.getElementById('symbolSlot').textContent = sym;
+                            document.getElementById('symbolSlot').style.color = 'var(--accent)';
+                            btn.style.background = 'rgba(0,184,148,0.3)';
+                            btn.style.borderColor = 'var(--secondary)';
+                            addGameStar();
+                            adjustDifficulty(true);
+                            playSound('correct');
+                            round++;
+                            if (round >= totalRounds) {
+                                setTimeout(() => completeScene(), 600);
+                            } else {
+                                currentQ = generateCompareQuestion();
+                                setTimeout(() => renderQuestion(), 800);
+                            }
+                        } else {
+                            btn.style.background = 'rgba(225,112,85,0.3)';
+                            btn.style.borderColor = 'var(--danger)';
+                            adjustDifficulty(false);
+                            playSound('wrong');
+                            setTimeout(() => {
+                                btn.style.background = 'rgba(255,255,255,0.1)';
+                                btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                            }, 500);
+                        }
+                    });
+                    optContainer.appendChild(btn);
+                });
+            }
+            
+            renderQuestion();
+        }
+
+        // ========== 百数城堡 - 凑十魔法 ==========
+        function renderMaketenScene(container, scene) {
+            let round = 0;
+            const totalRounds = 5;
+            
+            function generateMaketenQuestion() {
+                const num = Math.floor(Math.random() * 9) + 1;
+                const answer = 10 - num;
+                return { num, answer };
+            }
+            
+            let currentQ = generateMaketenQuestion();
+            
+            function renderQuestion() {
+                const q = currentQ;
+                
+                const options = new Set([q.answer]);
+                while (options.size < 4) {
+                    const opt = Math.floor(Math.random() * 9) + 1;
+                    if (opt !== q.answer) options.add(opt);
+                }
+                const optArr = Array.from(options).sort(() => Math.random() - 0.5);
+                
+                container.innerHTML = `
+                    <div style="text-align:center;padding:20px;">
+                        <div style="font-size:16px;color:var(--text-light);margin-bottom:20px;">✨ 哪个数字和 ${q.num} 凑成10？</div>
+                        
+                        <div style="display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;">
+                            <div style="width:70px;height:70px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:bold;color:var(--text-dark);box-shadow:0 0 20px rgba(253,203,110,0.5);">${q.num}</div>
+                            <div style="font-size:30px;color:rgba(255,255,255,0.5);">+</div>
+                            <div style="width:70px;height:70px;background:rgba(253,203,110,0.2);border:3px dashed #FDCB6E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;color:#FDCB6E;">?</div>
+                            <div style="font-size:30px;color:rgba(255,255,255,0.5);">=</div>
+                            <div style="width:70px;height:70px;background:var(--secondary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:bold;color:white;box-shadow:0 0 20px rgba(0,184,148,0.5);">10</div>
+                        </div>
+                        
+                        <div style="display:flex;flex-wrap:wrap;gap:15px;justify-content:center;margin-top:25px;" id="mtOptions"></div>
+                    </div>
+                `;
+                
+                const optContainer = document.getElementById('mtOptions');
+                optArr.forEach(opt => {
+                    const btn = document.createElement('div');
+                    btn.style.cssText = 'width:65px;height:65px;background:rgba(255,255,255,0.1);border:3px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;color:white;font-weight:bold;transition:all 0.3s;';
+                    btn.textContent = opt;
+                    btn.addEventListener('click', () => {
+                        if (opt === q.answer) {
+                            btn.style.background = 'rgba(0,184,148,0.3)';
+                            btn.style.borderColor = 'var(--secondary)';
+                            addGameStar();
+                            adjustDifficulty(true);
+                            playSound('correct');
+                            round++;
+                            if (round >= totalRounds) {
+                                setTimeout(() => completeScene(), 600);
+                            } else {
+                                currentQ = generateMaketenQuestion();
+                                setTimeout(() => renderQuestion(), 800);
+                            }
+                        } else {
+                            btn.style.background = 'rgba(225,112,85,0.3)';
+                            btn.style.borderColor = 'var(--danger)';
+                            adjustDifficulty(false);
+                            playSound('wrong');
+                            setTimeout(() => {
+                                btn.style.background = 'rgba(255,255,255,0.1)';
+                                btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                            }, 500);
+                        }
+                    });
+                    optContainer.appendChild(btn);
+                });
+            }
+            
+            renderQuestion();
         }
 
         function createFloatingStar() {
